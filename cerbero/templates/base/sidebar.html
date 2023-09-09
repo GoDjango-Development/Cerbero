@@ -1,0 +1,47 @@
+{% load static %}
+<!-- Sidebar-->
+<aside class="main-sidebar sidebar-dark-primary ">
+    <!-- Brand Logo -->
+    <a href="#" class="brand-link">
+        <img src="/static/img/logo.jpg" alt="SCVulWeb Logo" class="brand-image" />
+        <span class="brand-text font-weight-light">CERBERO</span>
+    </a>
+    <div class="sidebar">
+
+        <nav class="mt-2">
+            <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+
+                <li class="nav-item">
+                    <a href="{% url 'list_icmp' %}" class="nav-link">
+                        <img src="/static/img/icmp/icmp-32.png"   />
+                         <p> Servicios ICMP </p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    
+                    
+                    <a href="{% url 'list_https' %}" class="nav-link">
+                       <img src="/static/img/http/http-32.png"   /> <p> Servicios HTTP/S</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'list_dns' %}" class="nav-link">
+                        <img src="/static/img/dns/dns-32.png"   /> <p> Servicios DNS</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'list_tcp' %}" class="nav-link">
+                        <img src="/static/img/ip/tcp-32.png"   />  <p> Servicios TCP</p>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="" class="nav-link">
+                        <img src="/static/img/TFProtocol/TFProtocol-32.png"   />
+                        <p> Servicios TFProtocol</p>
+                    </a>
+                </li>
+
+            </ul>
+        </nav>
+    </div>
+</aside>

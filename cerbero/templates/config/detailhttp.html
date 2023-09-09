@@ -1,0 +1,123 @@
+{% extends 'base/body.html' %}
+{% load static %}
+
+{% block head %}
+<script src="{% static 'lib/highcharts-8.1.2/highcharts.js' %}"></script>
+<script src="{% static 'lib/highcharts-8.1.2/modules/exporting.js' %}"></script>
+<script src="{% static 'lib/highcharts-8.1.2/modules/export-data.js' %}"></script>
+<script src="{% static 'lib/highcharts-8.1.2/modules/accessibility.js' %}"></script>
+{% endblock %}
+
+
+{% block content %}
+
+<div class="card card-primary">
+  <div class="card-header">
+    <h3 class="card-title">Gráfica de comportamiento de la prueba: <strong>{{service.name}} </strong> al (servico HTTP: <strong> {{service.url}} </strong> )</h3>
+
+    
+  </div>
+  <div class="card-body">
+    <div class="chart">
+      <div id="container">
+ 
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+
+
+
+
+
+<script type="application/javascript">
+    // Obtener el valor de 'data_json' pasado desde la vista
+    var data = JSON.parse('{{ data_json|safe }}');
+
+    // Preparar los arrays para Highcharts
+    var fechas = [];
+    var estadosTiempos = [];
+
+    data.forEach(function (item, index) {
+      fechas.push(item.date);
+      var estado = '';
+      if (item.is_up === 'up') {
+        estado = 'Up';
+      } else if (item.is_up === 'down') {
+        estado = 'Down';
+      }else if (item.is_up === 'error') {
+        estado = 'Error';
+      }
+      estadosTiempos.push({
+        x: index + 1,
+        y: item.cpu_processing_time,
+        name: estado
+      });
+    });
+
+    // Configurar el gráfico de Highcharts
+    var chart = Highcharts.chart('container', {
+      chart: {
+        type: 'scatter'
+      },
+      title: {
+        text: 'Estado de las pruebas y tiempo de ejecución'
+      },
+      xAxis: {
+        title: {
+          text: 'Prueba'
+        }
+      },
+      yAxis: {
+        title: {
+          text: 'Tiempo (segundos)'
+        }
+      },
+      tooltip: {
+        formatter: function () {
+          var estado = this.point.name;
+          var tiempo = this.y;
+          return '<b>Estado: ' + estado + '</b><br>Tiempo: ' + tiempo + ' segundos';
+        }
+      },
+      series: [{
+        type: 'scatter',
+        name: 'Estado y Tiempo',
+        data: estadosTiempos,
+        marker: {
+          symbol: 'circle',
+          lineWidth: 1
+        },
+        dataLabels: {
+          enabled: true,
+          format: '{point.name}<br>{point.y}',
+          style: {
+            textOutline: false
+          }
+        }
+      }]
+    });
+
+    // Función para determinar el color según el estado
+    function getColorByState() {
+      var estado = this.point.name;
+      if (estado === 'Up') {
+        return 'green';
+      } else if (estado === 'Error') {
+        return 'yellow';
+      } else if (estado === 'Down') {
+        return 'red';
+      }
+    } // Obtener el valor de 'data_json' pasado desde la vista
+   
+
+
+
+
+
+</script>
+
+{% endblock %}

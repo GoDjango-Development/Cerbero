@@ -1,0 +1,17 @@
+{% extends "base/body.html" %}
+{% block content %}
+
+    <div class="error-page pt-5 mt-5">
+        <h2 class="headline text-dark"><font style="vertical-align: inherit;"> 403 </font></h2>
+        <div class="error-content">
+            <h3><i class="fas  fa-ban  text-dark"></i><font style="vertical-align: inherit;"> ¡Ups!
+                No tienes permiso para hacer eso. </font></h3>
+            <p><font style="vertical-align: inherit;"> Póngase en contacto con su administrador para obtener acceso adicional.
+                Mientras tanto, puede </font><a href="{% url 'home' %}"><font style="vertical-align: inherit;"> volver
+                al incio.
+
+        </div>
+
+    </div>
+
+{% endblock %}
