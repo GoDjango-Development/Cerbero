@@ -1,3 +1,4 @@
+
 $(document).ready(function () {
     // Crear la tabla con DataTables
     var table = $('#data').DataTable({
@@ -67,6 +68,7 @@ $(document).ready(function () {
 
         // Actualizar el estado visual del botón
         actualizarBoton(serviceId, buttonState);
+
     });
 
     $(document).on('click', '.iniciar-monitoreo-btn', function () {
@@ -79,7 +81,7 @@ $(document).ready(function () {
         // Realizar la solicitud AJAX para actualizar el estado en el servidor
         actualizarEstadoEnServidor(serviceId, newState);
     });
-
+    
     function actualizarBoton(serviceId, iniciarMonitoreo) {
         var btn = $('[data-service-id="' + serviceId + '"]');
         if (iniciarMonitoreo) {

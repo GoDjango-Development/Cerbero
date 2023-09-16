@@ -68,6 +68,7 @@ $(document).ready(function () {
 
         // Actualizar el estado visual del botón
         actualizarBoton(serviceId, buttonState);
+
     });
 
     $(document).on('click', '.iniciar-monitoreo-btn', function () {
@@ -95,7 +96,6 @@ $(document).ready(function () {
         if (btn.data('in-processed-by') === 'Terminado') {
             btn.prop('disabled', true);
             btn.find('i').removeClass('fa-pause').addClass('fa-ban');
-            btn.find('i').removeClass('fa-play').addClass('fa-ban');
             btn.attr('title', 'Monitoreo concluido');
         } else {
             btn.prop('disabled', false);
@@ -104,6 +104,7 @@ $(document).ready(function () {
         // Guardar el estado actual en el almacenamiento local
         guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
     }
+
 
     function actualizarEstadoEnServidor(serviceId, newState) {
         var csrfToken = getCookie('csrftoken');

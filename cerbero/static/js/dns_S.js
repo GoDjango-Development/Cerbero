@@ -80,6 +80,7 @@ $(document).ready(function () {
         actualizarEstadoEnServidor(serviceId, newState);
     });
 
+    
     function actualizarBoton(serviceId, iniciarMonitoreo) {
         var btn = $('[data-service-id="' + serviceId + '"]');
         if (iniciarMonitoreo) {
@@ -102,6 +103,7 @@ $(document).ready(function () {
         // Guardar el estado actual en el almacenamiento local
         guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
     }
+
 
     function actualizarEstadoEnServidor(serviceId, newState) {
         var csrfToken = getCookie('csrftoken');

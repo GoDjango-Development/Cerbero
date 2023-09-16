@@ -38,7 +38,8 @@ class ServiceDNSForm(forms.ModelForm):
 
     def clean_name(self):
         name = self.cleaned_data.get('name')
-        if DNSService.objects.filter(name=name).exists():
+        existing_services = DNSService.objects.exclude(pk=self.instance.pk)
+        if existing_services.filter(name=name).exists():
             raise ValidationError("El nombre ya está en uso.")
         return name
 

@@ -79,7 +79,7 @@ $(document).ready(function () {
         // Realizar la solicitud AJAX para actualizar el estado en el servidor
         actualizarEstadoEnServidor(serviceId, newState);
     });
-
+    
     function actualizarBoton(serviceId, iniciarMonitoreo) {
         var btn = $('[data-service-id="' + serviceId + '"]');
         if (iniciarMonitoreo) {

@@ -7,6 +7,11 @@ __pycache__/
 *.so
 redis
 # Distribution / packaging
+.vscode/
+EventLog.dll
+activate.bat
+
+
 .Python
 build/
 develop-eggs/
