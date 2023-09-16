@@ -4,7 +4,23 @@
 
 {% block head_list %}
 <script src="{% static 'js/dns_S.js' %}"></script>
-
+{% if messages %}
+  <script>
+    $(document).ready(function() {
+      {% for message in messages %}
+        {% if message.tags %}
+          {% if 'create' or 'edit' in message.tags %}
+            toastr.success("{{ message }}");
+          {% else %}
+            toastr.warning("{{ message }}");
+          {% endif %}
+        {% else %}
+          toastr.error("{{ message }}");
+        {% endif %}
+      {% endfor %}
+    });
+  </script>
+{% endif %}
 
 
 
@@ -40,7 +56,7 @@ Listado de servicios DNS
     <td scope="col" style="width: 15%;">{{ dns_s.port}}</td>
     <td scope="col" style="width: 15%;">{{ dns_s.number_probe}}</td>
     <td scope="col" style="width: 15%;">{{ dns_s.probe_timeout}}</td>
-    <td scope="col" style="width: 3%;" id="status" class="">
+    <td scope="col" style="width: 3%;" id="status_{{ forloop.counter }}" class="">
     {% if dns_s.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
     {% elif dns_s.status == 'down' %} 
@@ -51,7 +67,7 @@ Listado de servicios DNS
 
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process">
+    <td scope="col" style="width: 15%;" id="process_{{ forloop.counter }}">
     
     {% if dns_s.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
@@ -61,29 +77,26 @@ Listado de servicios DNS
         <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
         <h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>
-
     {% endif %}
-        
-    
     </td>
 
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="#" class="rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'edit_dns' dns_s.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro" data-in-processed ="{{ dns_s.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitoriar el servicio" data-service-id="{{ dns_s.id }}"
+                    title="Monitorear el servicio" data-service-id="{{ dns_s.id }}"
                     data-in-processed-by="{{ dns_s.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="#" type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block"
-                    title="Eliminar Registro"><i class="fas fa-trash-alt"></i></a>
+                <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+                    title="Eliminar Registro"  data-objeto-id="{{dns_s.id }}" data-processed="{{ dns_s.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
-                <a href="#" type="button"
+                <a href="{% url 'service_detail_dns' dns_s.id %}" type="button"
                     class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
                         class="fas fa-eye"></i></a>
             </div>

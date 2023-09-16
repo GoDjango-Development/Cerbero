@@ -4,7 +4,21 @@
 
 {% block head_list %}
 <script src="{% static 'js/icmp_S.js' %}"></script>
-
+{% if messages %}
+  <script>
+    $(document).ready(function() {
+      {% for message in messages %}
+        {% if message.tags %}
+          {% if 'create' or 'edit' in message.tags %}
+            toastr.success("{{ message }}");
+          {% else %}
+            toastr.warning("{{ message }}");
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    });
+  </script>
+{% endif %}
 
 
 
@@ -68,20 +82,20 @@ Listado de servicios ICMP
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="#" class="rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'edit_icmp' icmp_s.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro" data-in-processed ="{{ icmp_s.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitoriar el servicio" data-service-id="{{ icmp_s.id }}"
+                    title="Monitorear el servicio" data-service-id="{{ icmp_s.id }}"
                     data-in-processed-by="{{ icmp_s.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="#" type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block"
-                    title="Eliminar Registro"><i class="fas fa-trash-alt"></i></a>
+                <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+                    title="Eliminar Registro"  data-objeto-id="{{icmp_s.id }}" data-processed="{{ icmp_s.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
-                <a href="#" type="button"
+                <a href="{% url 'service_detail_icmp' icmp_s.id %}" type="button"
                     class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
                         class="fas fa-eye"></i></a>
             </div>

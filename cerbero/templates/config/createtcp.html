@@ -1,49 +1,36 @@
 {% extends 'base/form.html' %}
-{%load widget_tweaks%}
+{% load widget_tweaks %}
 
 {% block content %}
-    <form method="post"  enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <div class="card card-primary">
-            <div class=" card-header">
-                    <b>
-                            <i class="fas fa-plus"> </i> Registrar servicio HTTP/S
-                        </b>
-            </div>
-
-            <div class="card-body ">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-plus"></i> Registrar servicio TCP</h3>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="card-body">
                 <div class="row">
-
-                {% for field in form.visible_fields %}
-                <div class=" form-group mb-3 col-6">
-
-                    <label for="{{field.id_for_label}}">{{ field.label}}</label>
-                    {{field| add_class:"form-control"}}
-                    {% for error in field.errors %}
-                    <samp class="error invalid-feedback">{{error}}</samp>
-
+                    {% for field in form.visible_fields %}
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field|add_class:"form-control" }}
+                                {% for error in field.errors %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
                     {% endfor %}
-
-
-                    </div>
-                 {% endfor %}
-     
-                     
                 </div>
-            
-            
+            </div>
             <div class="card-footer">
-                <button type="submit" class="btn btn-primary rounded btn-flat btnre">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save"></i> Guardar registro
                 </button>
-                <a href="{% url 'list_https' %}" class="btn btn-danger rounded btn-flat">
+                <a href="{% url 'list_https' %}" class="btn btn-danger">
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>
-        </div>
-
-    </form>
-
-
+        </form>
+    </div>
 {% endblock %}

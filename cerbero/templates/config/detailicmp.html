@@ -32,8 +32,6 @@
                     <th>Estado</th>
                     <th>Fecha y hora</th>
                     <th>Tiempo de procesamiento de la CPU</th>
-                    <th>Estado de respuesta</th>
-                    <th>Mensaje de error</th>
                   </tr>
                 </thead>
                 <tbody></tbody>
@@ -43,7 +41,7 @@
             <div class="tab-pane" id="metric">
               <div class="card card-primary">
                 <div class="card-header">
-                  <h3 class="card-title">Gráfica de comportamiento de la prueba: <strong>{{ service.name }}</strong> al (servico HTTP: <strong>{{ service.url }}</strong> )</h3>
+                  <h3 class="card-title">Gráfica de comportamiento de la prueba: <strong>{{ service.name }}</strong> al (servico ICMP: <strong>{{ service.dns_ip }}</strong> )</h3>
                 </div>
                 <div class="card-body">
                   <div class="chart">
@@ -69,13 +67,13 @@
       if (pk) {
         // Inicializa el DataTable con el pk obtenido
         var table = $('#status-table').DataTable({
-          columns: [{ data: 'is_up' }, { data: 'timestamp' }, { data: 'cpu_processing_time' }, { data: 'response_status' }, { data: 'error_message' }]
+          columns: [{ data: 'is_up' }, { data: 'timestamp' }, { data: 'cpu_processing_time' }]
         })
     
         // Función para actualizar los datos de la tabla
         function refreshData() {
           $.ajax({
-            url: "{% url 'statushttprecord' 0 %}".replace('0', pk),
+            url: "{% url 'statusicmprecord' 0 %}".replace('0', pk),
             dataType: 'json',
             success: function (response) {
               var data = response
@@ -174,10 +172,11 @@
     })
     
     // Función para actualizar los datos del gráfico
+    
     function actualizarDatos() {
       // Realizar solicitud AJAX para obtener los datos JSON
       $.ajax({
-        url: "{% url 'statushttpgraficpoint' 0 %}".replace('0', pk),
+        url: "{% url 'statusicmpgraficpoint' 0 %}".replace('0', pk),
         dataType: 'json',
         success: function (response) {
           // Verificar si los datos del JSON son diferentes a los datos existentes

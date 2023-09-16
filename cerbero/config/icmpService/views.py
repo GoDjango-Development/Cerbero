@@ -1,7 +1,9 @@
 from django.contrib import messages
+from functools import wraps
 from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.urls import reverse
 from config.models import ICMPService as icmp_s, ServiceStatusICMP as ServiceStatus
 from .forms import ServiceICMPForm
@@ -11,31 +13,26 @@ import json
 
 
 
-
-
-
 def create_service_icmp(request):
     if request.method == 'POST':
         form = ServiceICMPForm(request.POST)
         if form.is_valid():
-            service = form.save()
+            service = form.save(commit=False)
+            service.processed_by = 'Esperando'
+            service.save()
 
-        # monitoreo_http_services.delay()
-        mensaje = "Servicio guardado correctamente."
-        messages.success(request, mensaje)
+            mensaje = "Servicio guardado correctamente."
+            messages.success(request, mensaje, extra_tags="create")
 
-        return HttpResponseRedirect(reverse('list_icmp'))
+            return HttpResponseRedirect(reverse('list_icmp'))
     else:
         form = ServiceICMPForm()
     return render(request, 'config/createicmp.html', {'form': form})
 
 
-
 def view_icmp(request):
     contexto = {'icmp_s': icmp_s.objects.all()}
     return render(request, 'config/listicmp.html', contexto)
-
-
 
 
 def update_data_icmp(request):
@@ -76,7 +73,6 @@ def update_data_icmp(request):
     return JsonResponse(update, safe=False)
 
 
-
 @csrf_exempt
 def check_service_icmp(request, pk):
     if request.method == 'POST':
@@ -94,4 +90,112 @@ def check_service_icmp(request, pk):
         return JsonResponse({'message': message})
 
     return JsonResponse({'message': 'Método no permitido.'})
+
+
+def verificar_edicion_permitida(view_func):
+    @wraps(view_func)
+    def wrapper(request, pk, *args, **kwargs):
+        service = get_object_or_404(icmp_s, pk=pk)
+
+        if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
+            messages.error(
+                request, "No se puede editar el elemento porque la prueba está en curso o terminada.")
+            return redirect('list_icmp')
+        return view_func(request, pk, *args, **kwargs)
+
+    return wrapper
+
+
+@verificar_edicion_permitida
+def edit_icmp(request, pk):
+    service = get_object_or_404(icmp_s, pk=pk)
+    
+    if request.method == 'POST':
+        form = ServiceICMPForm(request.POST, instance=service)
+        form.fields['number_probe'].required = False
+
+        if form.is_valid():
+            form.save()
+            message = "Servicio editado correctamente."
+            messages.success(request, message, extra_tags="edit")
+            return HttpResponseRedirect(reverse('list_https'))
+    else:
+        form = ServiceICMPForm(instance=service)
+        if service.processed_by == 'Detenido':
+            # Si el servicio está detenido, se excluye el campo 'number_probe' del formulario
+            form.fields['number_probe'].required = False
+            form.fields['number_probe'].widget.attrs['readonly'] = True
+
+        
+    return render(request, 'config/editicmp.html', {'form': form})
+
+
+
+def service_detail_icmp(request, pk):
+    service = icmp_s.objects.get(pk=pk)
+    statuses = ServiceStatus.objects.filter(service=service)
+
+    
+    context = {
+        'service': service,
+        'statuses': statuses,
+    }
+    return render(request, 'config/detailicmp.html', context)
+
+
+def statusicmprecord(request,pk):
+    service = icmp_s.objects.get(pk=pk)
+    statuses = ServiceStatus.objects.filter(service=service)
+
+    dataa =  []
+    for status in statuses:
+        pk = status
+        is_up = status.is_up
+        # Crea el contenido HTML personalizado para la columna "Status" en función del valor
+        if is_up == 'up':
+            status_html = '<i class="fas fa-circle" style="color: green;"></i>'
+        elif is_up == 'down':
+            status_html = '<i class="fas fa-circle" style="color: red;"></i>'
+        elif is_up == 'error':
+            status_html = '<i class="fas fa-circle" style="color: yellow;"></i>'
+        else:
+            status_html = ''
+        timestamp = status.timestamp.strftime('%d-%m-%y')
+        cpu_processing_time = round(status.cpu_processing_time,4)
+        error_message = status.error_message
+        
+        
+        statusdate = {
+            'is_up': status_html,
+            'timestamp': timestamp,
+            'cpu_processing_time': cpu_processing_time,
+            'error_message': error_message
+        }
+        dataa.append(statusdate)
+    return JsonResponse(dataa, safe=False)
+  
+def statusicmpgraficpoint(request,pk):
+    service = icmp_s.objects.get(pk=pk)
+    statuses = ServiceStatus.objects.filter(service=service)
+
+    data = []
+    for status in statuses:
+        formatted_date = status.timestamp.strftime('%d-%m-%y')
+        data.append({'date': formatted_date, 'is_up': status.is_up, 'cpu_processing_time': round(status.cpu_processing_time, 4)})
+    return JsonResponse(data, safe=False)
+
+@csrf_exempt
+@require_POST
+def delete_icmp(request, pk):
+    service = get_object_or_404(icmp_s, pk=pk)
+    
+    processed_by_value = service.processed_by  
+    if processed_by_value not in ['Esperando', 'Detenido', 'Terminado']:
+        return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
+    
+    service.delete()
+            
+    return JsonResponse({'mensaje': 'El registro ha sido eliminado exitosamente.'})
+
+
 

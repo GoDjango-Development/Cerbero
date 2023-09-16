@@ -21,7 +21,10 @@ import config.home.views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', config.home.views.dashboard , name='home'),
+    path('inicio', config.home.views.dashboard , name='home'),
+    path('login/', config.home.views.login_view , name='login'),
+    path('logout/', config.home.views.login_view , name='logout'),
+
     path('services/', include('config.urls'))
 
 

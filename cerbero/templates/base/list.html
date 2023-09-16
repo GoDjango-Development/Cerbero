@@ -1,17 +1,17 @@
 {% extends 'base/body.html' %}
 {% load static %}
 {% block head %}
-    <link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}"/>
-    <link rel="stylesheet"
-          href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}"/>
-    <script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
-    <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
-    <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
+<link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" />
+<link rel="stylesheet"
+    href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}" />
+<script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
+<script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
 
-    {% block head_list %}
+{% block head_list %}
 
-    {% endblock %}
+{% endblock %}
 
 {% endblock %}
 
@@ -20,7 +20,7 @@
 
 
 {% block content %}
-<div class="card card-primary">
+<div class="card ">
     <div class="card-header">
         <h3 class="card-title">
             <i class="fas fa-list-dots"></i>
@@ -28,8 +28,19 @@
 
             {% endblock %}
         </h3>
+        <div class="card-tools">
+            <ul class="nav nav-pills ml-auto">
+                <li class="nav-item">
+                    {% block buttons_list %}
+
+                    {% endblock %} 
+                </li>
+               
+            </ul>
+        </div>
     </div>
     <div class="card-body table-responsive">
+
         <table class="table table-bordered" id="data">
             <thead>
                 {% block columns %}
@@ -42,13 +53,11 @@
                 {% endblock %}
             </tbody>
         </table>
+
+
     </div>
 
-    <div class="card-footer">
-        {% block buttons_list %}
 
-        {% endblock %}
-    </div>
 </div>
 
 {% endblock %}

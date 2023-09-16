@@ -22,10 +22,6 @@ class Service(models.Model):
         verbose_name = 'Service'
         verbose_name_plural = 'Services'
 
-    
-                
-
-
 
 class HTTPService(Service):
     port = models.IntegerField(default=1)
@@ -38,9 +34,7 @@ class HTTPService(Service):
         verbose_name = 'HTTPService'
         verbose_name_plural = 'HTTPServices'
     
-   
-
-
+ 
 class ICMPService(Service):
     dns_ip = models.CharField( max_length=50)
     class Meta:
@@ -49,7 +43,6 @@ class ICMPService(Service):
         verbose_name = 'ICMPService'
         verbose_name_plural = 'ICMPServices'
 
-    
 
 class TFProtocolService(Service):
     dns = models.CharField( max_length=50)
@@ -101,7 +94,6 @@ class ServiceStatusHttp(models.Model):
     cpu_processing_time = models.FloatField(null=True, blank = True)
     is_up = models.CharField( max_length=50)
     response_status = models.CharField( max_length=50, null=True, blank = True)
-
     error_message = models.TextField(blank=True, null=True)
 
 

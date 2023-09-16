@@ -5,6 +5,9 @@ from django.forms.models import model_to_dict
 from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonResponse, HttpResponseForbidden
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
+
+
 from django.urls import reverse
 from config.models import HTTPService as http_s, ServiceStatusHttp as ServiceStatus
 from .forms import ServiceHTTPForm
@@ -16,18 +19,24 @@ def service_detail_view(request, pk):
     service = http_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
 
+    context = {
+        'service': service,
+        'statuses': statuses,
+    }
+
+    return render(request, 'config/detailhttp.html', context)
+
+
+def statushttpgraficpoint(request, pk):
+    service = http_s.objects.get(pk=pk)
+    statuses = ServiceStatus.objects.filter(service=service)
+
     data = []
     for status in statuses:
         formatted_date = status.timestamp.strftime('%d-%m-%y')
         data.append({'date': formatted_date, 'is_up': status.is_up,
-                    'cpu_processing_time': status.cpu_processing_time})
-
-    context = {
-        'service': service,
-        'statuses': statuses,
-        'data_json': json.dumps(data)
-    }
-    return render(request, 'config/detailhttp.html', context)
+                    'cpu_processing_time': round(status.cpu_processing_time, 4)})
+    return JsonResponse(data, safe=False)
 
 
 def create_https(request):
@@ -40,7 +49,7 @@ def create_https(request):
             service.save()
 
             message = "Servicio guardado correctamente."
-            messages.success(request, message)
+            messages.success(request, message, extra_tags="create")
 
             return HttpResponseRedirect(reverse('list_https'))
     else:
@@ -69,9 +78,41 @@ def check_service_http(request, pk):
 
 
 def view_https(request):
-
     contexto = {'http_s': http_s.objects.all()}
     return render(request, 'config/listhttp.html', contexto)
+
+
+def statushttprecord(request, pk):
+    service = http_s.objects.get(pk=pk)
+    statuses = ServiceStatus.objects.filter(service=service)
+
+    dataa = []
+    for status in statuses:
+        pk = status
+        is_up = status.is_up
+        # Crea el contenido HTML personalizado para la columna "Status" en función del valor
+        if is_up == 'up':
+            status_html = '<i class="fas fa-circle" style="color: green;"></i>'
+        elif is_up == 'down':
+            status_html = '<i class="fas fa-circle" style="color: red;"></i>'
+        elif is_up == 'error':
+            status_html = '<i class="fas fa-circle" style="color: yellow;"></i>'
+        else:
+            status_html = ''
+        timestamp = status.timestamp.strftime('%d-%m-%y')
+        cpu_processing_time = round(status.cpu_processing_time, 4)
+        response_status = status.response_status
+        error_message = status.error_message
+
+        statusdate = {
+            'is_up': status_html,
+            'timestamp': timestamp,
+            'cpu_processing_time': cpu_processing_time,
+            'response_status': response_status,
+            'error_message': error_message
+        }
+        dataa.append(statusdate)
+    return JsonResponse(dataa, safe=False)
 
 
 def update_data_http(request):
@@ -102,7 +143,6 @@ def update_data_http(request):
         else:
             processed_by_html = '<h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>'
 
-        
 
         date = {
             'status': status_html,
@@ -129,14 +169,35 @@ def verificar_edicion_permitida(view_func):
 @verificar_edicion_permitida
 def edit_https(request, pk):
     service = get_object_or_404(http_s, pk=pk)
+
     if request.method == 'POST':
         form = ServiceHTTPForm(request.POST, instance=service)
-
+        # Quita la validación del campo 'number_probe' si el servicio está detenido y el campo está vacío
+        if service.processed_by == 'Detenido' and not request.POST.get('number_probe'):
+            form.fields['number_probe'].required = False
         if form.is_valid():
             form.save()
             message = "Servicio editado correctamente."
-            messages.success(request, message)
+            messages.success(request, message, extra_tags="edit")
             return HttpResponseRedirect(reverse('list_https'))
-
-    form = ServiceHTTPForm(instance=service)
+    else:
+        form = ServiceHTTPForm(instance=service)
+        if service.processed_by == 'Detenido':
+            # Si el servicio está detenido, se excluye el campo 'number_probe' del formulario
+            form.fields['number_probe'].required = False
+            form.fields['number_probe'].widget.attrs['readonly'] = True
     return render(request, 'config/edithttp.html', {'form': form})
+
+
+@csrf_exempt
+@require_POST
+def delete_http(request, pk):
+    service = get_object_or_404(http_s, pk=pk)
+
+    processed_by_value = service.processed_by
+    if processed_by_value not in ['Esperando', 'Detenido', 'Terminado']:
+        return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
+
+    service.delete()
+
+    return JsonResponse({'mensaje': 'El registro ha sido eliminado exitosamente.'})

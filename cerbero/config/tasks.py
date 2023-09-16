@@ -58,8 +58,7 @@ def monitoreo_http_services(pk, resume=False):
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
             # Almacenar la bandera en el diccionario
             stop_flags_http[pk] = stop_flag
-        thread = Thread(target=test_https, name=service.name,
-                        args=(service, stop_flag))
+        thread = Thread(target=test_https, name=service.name,args=(service, stop_flag))
         thread.start()
         current_threads_http[pk] = thread
 
@@ -219,8 +218,7 @@ def monitoreo_tcp_services(pk, resume=False):
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
             # Almacenar la bandera en el diccionario
             stop_flags_tcp[pk] = stop_flag
-        thread = Thread(target=test_tcp, name=service.name,
-                        args=(service, stop_flag))
+        thread = Thread(target=test_tcp, name=service.name,args=(service, stop_flag))
         thread.start()
         current_threads_tcp[pk] = thread
 
@@ -362,8 +360,7 @@ def monitoreo_dns_services(pk, resume=False):
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
             # Almacenar la bandera en el diccionario
             stop_flags_dns[pk] = stop_flag
-        thread = Thread(target=test_dns, name=service.name,
-                        args=(service, stop_flag))
+        thread = Thread(target=test_dns, name=service.name,args=(service, stop_flag))
         thread.start()
         current_threads_dns[pk] = thread
 
@@ -504,8 +501,7 @@ def monitoreo_icmp_services(pk, resume=False):
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
             # Almacenar la bandera en el diccionario
             stop_flags_icmp[pk] = stop_flag
-        thread = Thread(target=test_icmp, name=service.name,
-                        args=(service, stop_flag))
+        thread = Thread(target=test_icmp, name=service.name,args=(service, stop_flag))
         thread.start()
         current_threads_icmp[pk] = thread
 

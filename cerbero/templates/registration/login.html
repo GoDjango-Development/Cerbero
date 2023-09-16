@@ -1,0 +1,102 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <link rel="icon" href="{% static 'img/empty.png' %}" type="image/png" />
+    <title>
+      {% block title %}
+
+      {% endblock %}
+    </title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="{% static 'lib/fontawesome-free/css/all.min.css' %}" />
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{% static 'lib/adminlte-3.1.0/css/adminlte.min.css' %}" />
+    <!-- jQuery -->
+    <script src="{% static 'lib/jquery/jquery.min.js' %}"></script>
+    <!-- Bootstrap 4 -->
+    <script src="{% static 'lib/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- Sweetalert2 -->
+    <script src="{% static 'lib/sweetalert2-9.10.0/sweetalert2.all.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
+    <script src="{% static 'lib/toastr/toastr.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}" />
+    <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
+    <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
+
+    <style>
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .login-box {
+        max-width: 2000px;
+        width: 500px;
+        border-radius: 5px;
+        background-color: #fff;
+        padding: 20px;
+        height: 600px;
+        margin-top: 100px;
+        /* Ajusta el valor de margen superior según tus necesidades */
+      }
+      
+      .login-logo {
+        text-align: center;
+      }
+      
+      .login-logo img {
+        max-width: 100%;
+        width: 300px;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    </style>
+  </head>
+
+  <body class="hold-transition login-page">
+    <div class="login-container">
+      <div class="login-box">
+        <div class="login-logo">
+          <img src="{% static 'img/logo.png' %}" alt="Logo" />
+        </div>
+        <div class="card">
+          <div class="card-body login-card-body">
+            <form method="post">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Usuario:</label>
+                <input type="text" name="username" id="username" class="form-control" required placeholder="Usuario" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Contraseña:</label>
+                <input type="password" name="password" id="password" class="form-control" required placeholder="Contraseña" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if messages %}
+      <script>
+      $(document).ready(function() {
+        {% for message in messages %}
+            
+              toastr.warning("{{ message }}");
+            
+        {% endfor %}
+      });
+    </script>
+    {% endif %}
+  </body>
+</html>

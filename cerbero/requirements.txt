@@ -1,6 +1,4 @@
 amqp==5.1.1
-anyjson==0.3.3
-APScheduler==3.10.4
 asgiref==3.7.2
 async-timeout==4.0.3
 autopep8==2.0.3
@@ -38,7 +36,6 @@ python-magic==0.4.27
 pytz==2023.3
 redis==5.0.0
 requests==2.31.0
-scapy==2.5.0
 six==1.16.0
 sqlparse==0.4.4
 tomli==2.0.1

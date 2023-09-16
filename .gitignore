@@ -2,11 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-%proyectos%Nueva carpeta%cerbero/
 
 # C extensions
 *.so
-.vscode
+redis
 # Distribution / packaging
 .Python
 build/

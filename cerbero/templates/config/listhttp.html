@@ -5,7 +5,22 @@
 {% block head_list %}
 <script src="{% static 'js/http_S.js' %}"></script>
 
-
+{% if messages %}
+  <script>
+    $(document).ready(function() {
+      {% for message in messages %}
+        {% if message.tags %}
+          {% if 'create' or 'edit' in message.tags %}
+            toastr.success("{{ message }}");
+          {% else %}
+            toastr.warning("{{ message }}");
+          {% endif %}
+        
+        {% endif %}
+      {% endfor %}
+    });
+  </script>
+{% endif %}
 
 
 {% endblock head_list %}
@@ -61,13 +76,10 @@ Listado de servicios HTTP/S
         <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
         <h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>
-
     {% endif %}
-        
-    
     </td>
 
-    <td scope="col" style="width: 10%;" id="option_{{ forloop.counter }}">
+    <td scope="col" style="width: 10%;" id="options_{{ forloop.counter }}">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
                 <a href="{% url 'edit_https' http_s.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
@@ -75,12 +87,12 @@ Listado de servicios HTTP/S
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitoriar el servicio" data-service-id="{{ http_s.id }}"
+                    title="Monitorear el servicio" data-service-id="{{ http_s.id }}"
                     data-in-processed-by="{{ http_s.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="#" type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block"
-                    title="Eliminar Registro"><i class="fas fa-trash-alt"></i></a>
+                <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+                    title="Eliminar Registro"  data-objeto-id="{{http_s.id }}" data-processed="{{ http_s.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
                 <a href="{% url 'service_detail' http_s.id %}" type="button"
@@ -97,14 +109,5 @@ Listado de servicios HTTP/S
     <i class="fas fa-plus"></i> Nuevo registro
 </a>
 
-{% if messages %}
-  <script>
-    $(document).ready(function() {
-      {% for message in messages %}
-        toastr.warning("{{ message }}");
-      {% endfor %}
-    });
-  </script>
-{% endif %}
 
 {% endblock %}
