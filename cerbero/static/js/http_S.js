@@ -5,20 +5,15 @@ console.log(url);
 
 const socket = new WebSocket(url);
 
-// Manejar eventos de apertura de la conexión
-socket.onopen = function (event) {
-    console.log('Conexión WebSocket abierta');
-};
-
-
-// Evento WebSocket: Cuando se recibe un mensaje del servidor
-socket.onmessage = function (event) {
+ // Evento WebSocket: Cuando se recibe un mensaje del servidor
+ socket.onmessage = function (event) {
     var message = JSON.parse(event.data);
     var text = JSON.parse(message.text);
 
     var pk = text.pk
     var buttonState = text.buttonState
     console.log('pk:', text.pk);
+    console.log( 'este es el pk'+pk);
     console.log('buttonState:', text.buttonState);
 
     actualizarBoton(pk, buttonState);
@@ -133,7 +128,7 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
         btn.removeAttr('title');
     }
 
-    
+
     if (socket.readyState === WebSocket.OPEN) {
         var message = {
             serviceId: serviceId,
@@ -146,12 +141,20 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
         console.error("El WebSocket no está en un estado válido para enviar mensajes.");
     }
 
+    // Manejar eventos de apertura de la conexión
+    socket.onopen = function (event) {
+        console.log('Conexión WebSocket abierta');
+    };
 
-    
+
+   
+
 
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
+
+
 
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');

@@ -10,7 +10,8 @@ from config.models import TCPService as tcp_s, ServiceStatusTCP as ServiceStatus
 from .forms import ServiceTCPForm
 from config.tasks import monitoreo_tcp_services
 import json
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 def service_detail_tcp(request, pk):
     service = tcp_s.objects.get(pk=pk)
@@ -39,23 +40,52 @@ def create_service_tcp(request):
     return render(request, 'config/createtcp.html', {'form': form})
 
 
+
 @csrf_exempt
 def check_service_tcp(request, pk):
     if request.method == 'POST':
         action = request.POST.get('action')
-
+        service = get_object_or_404(tcp_s, pk=pk)
         if action == 'iniciar':
+            service.is_monitoring = True
+            service.save()
             monitoreo_tcp_services.delay(pk, resume=True)
             message = 'Monitoreo iniciado correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': True
+                })
+            })
         elif action == 'detener':
+            service.is_monitoring = False
+            service.save()
             monitoreo_tcp_services.delay(pk, resume=False)
             message = 'Monitoreo detenido correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': False
+                })
+            })
         else:
             message = 'Acción no válida.'
 
         return JsonResponse({'message': message})
 
     return JsonResponse({'message': 'Método no permitido.'})
+
+
+
+
 
 
 def update_data_tcp(request):

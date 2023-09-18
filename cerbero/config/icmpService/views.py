@@ -10,6 +10,8 @@ from .forms import ServiceICMPForm
 from config.tasks import monitoreo_icmp_services
 
 import json
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 
 
@@ -77,19 +79,44 @@ def update_data_icmp(request):
 def check_service_icmp(request, pk):
     if request.method == 'POST':
         action = request.POST.get('action')
-
+        service = get_object_or_404(icmp_s, pk=pk)
         if action == 'iniciar':
+            service.is_monitoring = True
+            service.save()
             monitoreo_icmp_services.delay(pk, resume=True)
             message = 'Monitoreo iniciado correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': True
+                })
+            })
         elif action == 'detener':
+            service.is_monitoring = False
+            service.save()
             monitoreo_icmp_services.delay(pk, resume=False)
             message = 'Monitoreo detenido correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': False
+                })
+            })
         else:
             message = 'Acción no válida.'
 
         return JsonResponse({'message': message})
 
     return JsonResponse({'message': 'Método no permitido.'})
+
 
 
 def verificar_edicion_permitida(view_func):

@@ -5,7 +5,8 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonRespons
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from django.urls import reverse
 from config.models import DNSService as dns_s,  ServiceStatusDNS as ServiceStatus
 from .forms import ServiceDNSForm
@@ -37,13 +38,37 @@ def create_service_dns(request):
 def check_service_dns(request, pk):
     if request.method == 'POST':
         action = request.POST.get('action')
-
+        service = get_object_or_404(dns_s, pk=pk)
         if action == 'iniciar':
+            service.is_monitoring = True
+            service.save()
             monitoreo_dns_services.delay(pk, resume=True)
             message = 'Monitoreo iniciado correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': True
+                })
+            })
         elif action == 'detener':
+            service.is_monitoring = False
+            service.save()
             monitoreo_dns_services.delay(pk, resume=False)
             message = 'Monitoreo detenido correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': False
+                })
+            })
         else:
             message = 'Acción no válida.'
 
