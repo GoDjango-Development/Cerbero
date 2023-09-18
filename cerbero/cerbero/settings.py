@@ -32,19 +32,22 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #app
+    # app
     'config',
 
 
-    #lib
-    'widget_tweaks'
-    
+    # lib
+    'widget_tweaks',
+    'channels',
+
 ]
 
 MIDDLEWARE = [
@@ -75,9 +78,13 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'cerbero.wsgi.application'
+ASGI_APPLICATION = "cerbero.asgi.application"
 
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -148,7 +155,6 @@ CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_RESULT_BACKEND = 'redis://127.0.0.1:6379/0'
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
-
 
 
 handler403 = 'config.home.views.error_403'

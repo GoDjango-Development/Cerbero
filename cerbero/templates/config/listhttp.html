@@ -88,7 +88,13 @@ Listado de servicios HTTP/S
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
                     title="Monitorear el servicio" data-service-id="{{ http_s.id }}"
-                    data-in-processed-by="{{ http_s.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
+                    data-in-processed-by="{{ http_s.processed_by }}" data-is-monitoring="{{ http_s.is_monitoring }}"  name="service_id">    
+                    {% if http_s.is_monitoring %}
+                        <i class="fas fa-pause"></i>
+                    {% else %}
+                        <i class="fas fa-play"></i>
+                    {% endif %}
+            </button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"

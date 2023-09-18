@@ -6,7 +6,8 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonRespons
 from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 from django.urls import reverse
 from config.models import HTTPService as http_s, ServiceStatusHttp as ServiceStatus
@@ -63,12 +64,35 @@ def check_service_http(request, pk):
         action = request.POST.get('action')
         service = get_object_or_404(http_s, pk=pk)
         if action == 'iniciar':
+            service.is_monitoring = True
+            service.save()
             monitoreo_http_services.delay(pk, resume=True)
-
             message = 'Monitoreo iniciado correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': True
+                })
+            })
         elif action == 'detener':
+            service.is_monitoring = False
+            service.save()
             monitoreo_http_services.delay(pk, resume=False)
             message = 'Monitoreo detenido correctamente.'
+
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': False
+                })
+            })
         else:
             message = 'Acción no válida.'
 
@@ -142,7 +166,6 @@ def update_data_http(request):
             processed_by_html = '<h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>'
         else:
             processed_by_html = '<h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>'
-
 
         date = {
             'status': status_html,

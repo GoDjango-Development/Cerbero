@@ -12,7 +12,7 @@ class Service(models.Model):
     processed_by = models.CharField(max_length=100, null = True)
     current_iteration = models.IntegerField(blank=True, null=True)
     stop_flags = models.IntegerField(blank=True, null=True)
-
+    is_monitoring = models.BooleanField(default = False)
 
     
 
