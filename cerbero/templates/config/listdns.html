@@ -56,7 +56,7 @@ Listado de servicios DNS
     <td scope="col" style="width: 15%;">{{ dns_s.port}}</td>
     <td scope="col" style="width: 15%;">{{ dns_s.number_probe}}</td>
     <td scope="col" style="width: 15%;">{{ dns_s.probe_timeout}}</td>
-    <td scope="col" style="width: 3%;" id="status_{{ forloop.counter }}" class="">
+    <td scope="col" style="width: 3%;" id="status_{{dns.id}}" class="">
     {% if dns_s.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
     {% elif dns_s.status == 'down' %} 
@@ -64,10 +64,10 @@ Listado de servicios DNS
     {% elif dns_s.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
-
+        <i class="fas fa-circle" style="color: grey ;"></i>
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process_{{ forloop.counter }}">
+    <td scope="col" style="width: 15%;" id="process_{{dns.id}}">
     
     {% if dns_s.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>

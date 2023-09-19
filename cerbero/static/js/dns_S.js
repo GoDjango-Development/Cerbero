@@ -154,8 +154,6 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
 
-
-
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
     $.ajax({
@@ -188,10 +186,12 @@ function actualizarColumnas() {
         dataType: "json",
         success: function (data) {
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
-            $.each(data, function (index, elemento) {
-                $("#status_" + (index + 1)).html(elemento.status);
-                $("#process_" + (index + 1)).html(elemento.processed_by);
+            $.each(data, function (elemento) {
+                var serviceId = elemento.id; // Obtén el ID del servicio
 
+                // Actualiza las columnas utilizando el ID del servicio
+                $("#status_" + serviceId).html(elemento.status);
+                $("#process_" + serviceId).html(elemento.processed_by);
             });
         },
         error: function (xhr, status, error) {
@@ -201,7 +201,7 @@ function actualizarColumnas() {
 }
 
 // Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 5 segundos)
-setInterval(actualizarColumnas, 5000);
+setInterval(actualizarColumnas, 5000););
 
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());

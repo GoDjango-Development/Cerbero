@@ -188,10 +188,12 @@ function actualizarColumnas() {
         dataType: "json",
         success: function (data) {
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
-            $.each(data, function (index, elemento) {
-                $("#status_" + (index + 1)).html(elemento.status);
-                $("#process_" + (index + 1)).html(elemento.processed_by);
+            $.each(data, function (elemento) {
+                var serviceId = elemento.id; // Obtén el ID del servicio
 
+                // Actualiza las columnas utilizando el ID del servicio
+                $("#status_" + serviceId).html(elemento.status);
+                $("#process_" + serviceId).html(elemento.processed_by);
             });
         },
         error: function (xhr, status, error) {

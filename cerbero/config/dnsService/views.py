@@ -10,17 +10,62 @@ from asgiref.sync import async_to_sync
 from django.urls import reverse
 from config.models import DNSService as dns_s,  ServiceStatusDNS as ServiceStatus
 from .forms import ServiceDNSForm
+from django.contrib.auth.decorators import login_required, user_passes_test
 from config.tasks import monitoreo_dns_services
 import json
 
 
 
 
+
+def is_creator_admin(user, service):
+    return service.created_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+
+def verify_edit_allowed(view_func):
+    @wraps(view_func)
+    def wrapper(request, pk, *args, **kwargs):
+        service = get_object_or_404(dns_s, pk=pk)
+
+        if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
+            messages.error(request, "No se puede editar el elemento porque la prueba está en curso o terminada.")
+            return redirect('list_https')
+
+        # Verificar si el usuario actual es el creador del servicio o pertenece al grupo "admin"
+        if not is_creator_admin(request.user, service):
+            messages.error(request, "No tienes permiso para editar este elemento.")
+            return redirect('list_https')
+
+        return view_func(request, pk, *args, **kwargs)
+
+    return wrapper
+
+
+
+def verify_deletion_allowed(view_func):
+    @wraps(view_func)
+    def wrapper(request, pk, *args, **kwargs):
+        service = get_object_or_404(dns_s, pk=pk)
+
+        if service.processed_by not in ['Esperando', 'Detenido', 'Terminado']:
+            return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
+
+        # Verificar si el usuario actual es el creador del registro o pertenece al grupo "admin"
+        if not is_creator_admin(request.user, service):
+            return JsonResponse({'mensaje': 'No tienes permiso para eliminar este elemento.'}, status=403)
+
+        return view_func(request, pk, *args, **kwargs)
+
+    return wrapper
+
+
+@login_required(login_url='login', redirect_field_name ='login')
 def create_service_dns(request):
     if request.method == 'POST':
         form = ServiceDNSForm(request.POST)
         if form.is_valid():
             service = form.save(commit=False)
+            service.create_by = request.user
+
             service.processed_by = 'Esperando'
             service.save()
 
@@ -31,7 +76,6 @@ def create_service_dns(request):
     else:
         form = ServiceDNSForm()
     return render(request, 'config/createdns.html', {'form': form})
-
 
 
 @csrf_exempt
@@ -84,6 +128,7 @@ def update_data_dns(request):
     for datos in datos:
         status = datos.status
         processed_by = datos.processed_by
+        id = datos.pk
 
         # Crea el contenido HTML personalizado para la columna "Status" en función del valor
         if status == 'up':
@@ -93,7 +138,7 @@ def update_data_dns(request):
         elif status == 'error':
             status_html = '<i class="fas fa-circle" style="color: yellow;"></i>'
         else:
-            status_html = ''
+            status_html = '<i class="fas fa-circle" style="color: grey;"></i>'
 
         # Crea el contenido HTML personalizado para la columna "Processed By" en función del valor
         if processed_by == 'Terminado':
@@ -110,34 +155,27 @@ def update_data_dns(request):
         date = {
             'status': status_html,
             'processed_by': processed_by_html,
+            'id': id
         }
         update.append(date)
     return JsonResponse(update, safe=False)
 
 
-
+@login_required(login_url='login', redirect_field_name ='login')
 def list_service_dns(request):
+    if request.user.groups.filter(name = 'staff').exists():        
 
-    contexto = {'dns_s': dns_s.objects.all()}
+        contexto = {'dns_s': dns_s.objects.all()}
+    else:
+        contexto = {'dns_s': dns_s.objects.filter(create_by = request.user)}
+
     return render(request, 'config/listdns.html', contexto)
 
 
 
-def verificar_edicion_permitida(view_func):
-    @wraps(view_func)
-    def wrapper(request, pk, *args, **kwargs):
-        service = get_object_or_404(dns_s, pk=pk)
 
-        if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
-            messages.error(
-                request, "No se puede editar el elemento porque la prueba está en curso o terminada.")
-            return redirect('list_https')
-        return view_func(request, pk, *args, **kwargs)
-
-    return wrapper
-
-
-@verificar_edicion_permitida
+@login_required(login_url='login', redirect_field_name ='login')
+@verify_edit_allowed
 def edit_dns(request, pk):
     service = get_object_or_404(dns_s, pk=pk)
 
@@ -159,7 +197,7 @@ def edit_dns(request, pk):
             form.fields['number_probe'].widget.attrs['readonly'] = True
     return render(request, 'config/editdns.html', {'form': form})
 
-
+@login_required(login_url='login', redirect_field_name ='login')
 def service_detail_dns(request, pk):
     service = dns_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -175,6 +213,7 @@ def service_detail_dns(request, pk):
     }
     return render(request, 'config/detaildns.html', context)
 
+@login_required(login_url='login', redirect_field_name ='login')
 def statusdnsgraficpoint(request,pk):
     service = dns_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -185,6 +224,7 @@ def statusdnsgraficpoint(request,pk):
         data.append({'date': formatted_date, 'is_up': status.is_up, 'cpu_processing_time': round(status.cpu_processing_time, 4)})
     return JsonResponse(data, safe=False)
 
+@login_required(login_url='login', redirect_field_name ='login')
 def statusdnsrecord(request,pk):
     service = dns_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -218,6 +258,8 @@ def statusdnsrecord(request,pk):
     
 @csrf_exempt
 @require_POST
+@login_required(login_url='login', redirect_field_name ='login')
+@verify_deletion_allowed
 def delete_dns(request, pk):
     service = get_object_or_404(dns_s, pk=pk)
 

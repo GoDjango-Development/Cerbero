@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 
 # Create your models here.
@@ -11,8 +12,8 @@ class Service(models.Model):
     in_process = models.BooleanField(default=False)
     processed_by = models.CharField(max_length=100, null = True)
     current_iteration = models.IntegerField(blank=True, null=True)
-    stop_flags = models.IntegerField(blank=True, null=True)
     is_monitoring = models.BooleanField(default = False)
+    create_by =  models.ForeignKey(User,  on_delete=models.CASCADE)
 
     
 

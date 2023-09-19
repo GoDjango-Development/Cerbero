@@ -55,7 +55,7 @@ Listado de servicios HTTP/S
     <td scope="col" style="width: 15%;">{{ http_s.port }}</td>
     <td scope="col" style="width: 15%;">{{ http_s.number_probe }}</td>
     <td scope="col" style="width: 15%;">{{ http_s.probe_timeout }}</td>
-    <td scope="col" style="width: 3%;" id="status_{{ forloop.counter }}" class="">
+    <td scope="col" style="width: 3%;" id="status_{{ http_s.id }}" class="">
     {% if http_s.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
     {% elif http_s.status == 'down' %} 
@@ -63,10 +63,10 @@ Listado de servicios HTTP/S
     {% elif http_s.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
-
+        <i class="fas fa-circle " style="color: grey;"></i>
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process_{{ forloop.counter }}">
+    <td scope="col" style="width: 15%;" id="process_{{ http_s.id }}">
     
     {% if http_s.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
@@ -89,12 +89,8 @@ Listado de servicios HTTP/S
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
                     title="Monitorear el servicio" data-service-id="{{ http_s.id }}"
                     data-in-processed-by="{{ http_s.processed_by }}" data-is-monitoring="{{ http_s.is_monitoring }}"  name="service_id">    
-                    {% if http_s.is_monitoring %}
                         <i class="fas fa-pause"></i>
-                    {% else %}
-                        <i class="fas fa-play"></i>
-                    {% endif %}
-            </button>
+                  
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
