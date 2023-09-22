@@ -52,7 +52,7 @@ Listado de servicios TCP
     <td scope="col" style="width: 15%;">{{ tcp_s.ip_address}}</a></td>
     <td scope="col" style="width: 15%;">{{ tcp_s.number_probe }}</td>
     <td scope="col" style="width: 15%;">{{ tcp_s.probe_timeout }}</td>
-    <td scope="col" style="width: 3%;" id="status_{{ forloop.counter }}" class="">
+    <td scope="col" style="width: 3%;" id="status_{{tcp_s.id}}" class="">
     {% if tcp_s.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
     {% elif tcp_s.status == 'down' %} 
@@ -60,10 +60,10 @@ Listado de servicios TCP
     {% elif tcp_s.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
-
+        <i class="fas fa-circle " style="color: grey;"></i>
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process_{{ forloop.counter }}">
+    <td scope="col" style="width: 15%;" id="process_{{tcp_s.id}}">
     
     {% if tcp_s.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>

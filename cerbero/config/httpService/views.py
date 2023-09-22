@@ -50,9 +50,7 @@ def verify_deletion_allowed(view_func):
         if service.processed_by not in ['Esperando', 'Detenido', 'Terminado']:
             return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
 
-        # Verificar si el usuario actual es el creador del registro o pertenece al grupo "admin"
-        if not is_creator_admin(request.user, service):
-            return JsonResponse({'mensaje': 'No tienes permiso para eliminar este elemento.'}, status=403)
+        
 
         return view_func(request, pk, *args, **kwargs)
 
@@ -262,11 +260,6 @@ def edit_https(request, pk):
 @verify_deletion_allowed
 def delete_http(request, pk):
     service = get_object_or_404(http_s, pk=pk)
-
-    processed_by_value = service.processed_by
-    if processed_by_value not in ['Esperando', 'Detenido', 'Terminado']:
-        return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
-
     service.delete()
 
     return JsonResponse({'mensaje': 'El registro ha sido eliminado exitosamente.'})

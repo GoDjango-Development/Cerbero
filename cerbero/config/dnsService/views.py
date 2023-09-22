@@ -49,9 +49,6 @@ def verify_deletion_allowed(view_func):
         if service.processed_by not in ['Esperando', 'Detenido', 'Terminado']:
             return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
 
-        # Verificar si el usuario actual es el creador del registro o pertenece al grupo "admin"
-        if not is_creator_admin(request.user, service):
-            return JsonResponse({'mensaje': 'No tienes permiso para eliminar este elemento.'}, status=403)
 
         return view_func(request, pk, *args, **kwargs)
 
@@ -79,6 +76,7 @@ def create_service_dns(request):
 
 
 @csrf_exempt
+@login_required(login_url='login', redirect_field_name ='login')
 def check_service_dns(request, pk):
     if request.method == 'POST':
         action = request.POST.get('action')
@@ -120,7 +118,7 @@ def check_service_dns(request, pk):
 
     return JsonResponse({'message': 'Método no permitido.'})
 
-
+@login_required(login_url='login', redirect_field_name ='login')
 def update_data_dns(request):
     datos = dns_s.objects.all()
 

@@ -160,30 +160,27 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
 
 
 
-function actualizarEstadoEnServidor(serviceId, newState) {
-    var csrfToken = getCookie('csrftoken');
+function actualizarColumnas() {
     $.ajax({
-        url: '/services/icmpService/' + serviceId + '/',
-        type: 'POST',
-        headers: { 'X-CSRFToken': csrfToken },
-        data: {
-            'action': newState === 'true' ? 'iniciar' : 'detener'
-        },
-        success: function (response) {
-            console.log(response.message);
-            toastr.success(response.message)
-            // No se requiere hacer nada aquí, el cambio en el servidor ya se realizó
+        url: "/services/tcpServiceupdate/",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            // Recorre los datos y actualiza las tres últimas columnas en cada fila
+            $.each(data, function (elemento) {
+                var serviceId = elemento.id; // Obtén el ID del servicio
 
+                // Actualiza las columnas utilizando el ID del servicio
+                $("#status_" + serviceId).html(elemento.status);
+                $("#process_" + serviceId).html(elemento.processed_by);
+            });
         },
         error: function (xhr, status, error) {
-            console.error('Error al actualizar el monitoreo:', error);
-
-            // Revertir el cambio visual en caso de error
-            var currentState = newState === 'true' ? 'false' : 'true';
-            actualizarBoton(serviceId, currentState);
+            console.error("Error al obtener los datos:", error);
         }
     });
 }
+
 
 function actualizarColumnas() {
     $.ajax({

@@ -201,7 +201,7 @@ function actualizarColumnas() {
 }
 
 // Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 5 segundos)
-setInterval(actualizarColumnas, 5000););
+setInterval(actualizarColumnas, 5000);
 
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());
