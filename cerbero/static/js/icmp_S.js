@@ -5,20 +5,6 @@ console.log(url);
 
 const socket = new WebSocket(url);
 
-// Evento WebSocket: Cuando se recibe un mensaje del servidor
-socket.onmessage = function (event) {
-    var message = JSON.parse(event.data);
-    var text = JSON.parse(message.text);
-
-    var pk = text.pk
-    var buttonState = text.buttonState
-    console.log('pk:', text.pk);
-    console.log('este es el pk' + pk);
-    console.log('buttonState:', text.buttonState);
-
-    actualizarBoton(pk, buttonState);
-
-};
 
 
 
@@ -107,6 +93,22 @@ $(document).ready(function () {
         actualizarEstadoEnServidor(serviceId, newState);
     });
 
+    
+    // Evento WebSocket: Cuando se recibe un mensaje del servidor
+    socket.onmessage = function (event) {
+        var message = JSON.parse(event.data);
+        var text = JSON.parse(message.text);
+
+        var pk = text.pk
+        var buttonState = text.buttonState
+        console.log('pk:', text.pk);
+        console.log('este es el pk' + pk);
+        console.log('buttonState:', text.buttonState);
+
+        actualizarBoton(pk, buttonState);
+
+    };
+
 
 
 });
@@ -159,41 +161,24 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
 }
 
 
-
-function actualizarColumnas() {
-    $.ajax({
-        url: "/services/tcpServiceupdate/",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-            // Recorre los datos y actualiza las tres últimas columnas en cada fila
-            $.each(data, function (elemento) {
-                var serviceId = elemento.id; // Obtén el ID del servicio
-
-                // Actualiza las columnas utilizando el ID del servicio
-                $("#status_" + serviceId).html(elemento.status);
-                $("#process_" + serviceId).html(elemento.processed_by);
-            });
-        },
-        error: function (xhr, status, error) {
-            console.error("Error al obtener los datos:", error);
-        }
-    });
-}
-
-
 function actualizarColumnas() {
     $.ajax({
         url: "/services/icmpServiceupdate/",
         type: "GET",
         dataType: "json",
         success: function (data) {
+            console.log("Datos recibidos:", data);
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
             $.each(data, function (index, elemento) {
-                $("#status_" + (index + 1)).html(elemento.status);
-                $("#process_" + (index + 1)).html(elemento.processed_by);
+                var serviceId = elemento.id; // Obtén el ID del servicio
+                console.log("ID del servicio:", serviceId);
 
+                // Actualiza las columnas utilizando el ID del servicio
+                $("#status_" + serviceId).html(elemento.status);
+                $("#process_" + serviceId).html(elemento.processed_by);
             });
+
+            console.log("Primer elemento de los datos:", data[0]);
         },
         error: function (xhr, status, error) {
             console.error("Error al obtener los datos:", error);
@@ -201,8 +186,35 @@ function actualizarColumnas() {
     });
 }
 
-// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 5 segundos)
-setInterval(actualizarColumnas, 5000);
+// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
+setInterval(actualizarColumnas, 1000);
+
+
+// actualizar estado en el servidor del incio o detencion del monitoreo
+function actualizarEstadoEnServidor(serviceId, newState) {
+    var csrfToken = getCookie('csrftoken');
+    $.ajax({
+        url: '/services/icmpService/' + serviceId + '/',
+        type: 'POST',
+        headers: { 'X-CSRFToken': csrfToken },
+        data: {
+            'action': newState === 'true' ? 'iniciar' : 'detener'
+        },
+        success: function (response) {
+            console.log(response.message);
+            toastr.success(response.message)
+            // No se requiere hacer nada aquí, el cambio en el servidor ya se realizó
+
+        },
+        error: function (xhr, status, error) {
+            console.error('Error al actualizar el monitoreo:', error);
+
+            // Revertir el cambio visual en caso de error
+            var currentState = newState === 'true' ? 'false' : 'true';
+            actualizarBoton(serviceId, currentState);
+        }
+    });
+}
 
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());

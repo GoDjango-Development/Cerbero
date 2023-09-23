@@ -79,7 +79,7 @@ def view_icmp(request):
     if request.user.groups.filter(name='staff').exists():
         contexto = {'icmp_s': icmp_s.objects.all()}
     else:
-        contexto = {'http_s': icmp_s.objects.filter(create_by=request.user)}
+        contexto = {'icmp_s': icmp_s.objects.filter(create_by=request.user)}
 
     return render(request, 'config/listicmp.html', contexto)
 

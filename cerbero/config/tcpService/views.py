@@ -172,7 +172,7 @@ def update_data_tcp(request):
 def list_service_tcp(request):
     if request.user.groups.filter(name = 'staff').exists():        
 
-        contexto = tcp_s.objects.all()
+        contexto ={'tcp_s': tcp_s.objects.all()}
     else:
         contexto = {'tcp_s': tcp_s.objects.filter(create_by = request.user)}
 

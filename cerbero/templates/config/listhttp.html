@@ -48,14 +48,14 @@ Listado de servicios HTTP/S
 {% endblock %}
 
 {% block rows %}
-{% for http_s in http_s %}
+{% for http in http_s %}
 <tr>
-    <td scope="col" style="width: 20%;">{{ http_s.name }}</td>
-    <td scope="col" style="width: 15%;">{{ http_s.url}}</a></td>
-    <td scope="col" style="width: 15%;">{{ http_s.port }}</td>
-    <td scope="col" style="width: 15%;">{{ http_s.number_probe }}</td>
-    <td scope="col" style="width: 15%;">{{ http_s.probe_timeout }}</td>
-    <td scope="col" style="width: 3%;" id="status_{{ http_s.id }}" class="">
+    <td scope="col" style="width: 20%;">{{ http.name }}</td>
+    <td scope="col" style="width: 15%;">{{ http.url}}</a></td>
+    <td scope="col" style="width: 15%;">{{ http.port }}</td>
+    <td scope="col" style="width: 15%;">{{ http.number_probe }}</td>
+    <td scope="col" style="width: 15%;">{{ http.probe_timeout }}</td>
+    <td scope="col" style="width: 3%;" id="status_{{ http.id }}" class="">
     {% if http_s.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
     {% elif http_s.status == 'down' %} 
@@ -63,10 +63,9 @@ Listado de servicios HTTP/S
     {% elif http_s.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
-        <i class="fas fa-circle " style="color: grey;"></i>
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process_{{ http_s.id }}">
+    <td scope="col" style="width: 15%;" id="process_{{ http.id }}">
     
     {% if http_s.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
@@ -75,29 +74,28 @@ Listado de servicios HTTP/S
     {% elif http_s.processed_by == 'Monitoreando' %}
         <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
-        <h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>
     {% endif %}
     </td>
 
     <td scope="col" style="width: 10%;" id="options_{{ forloop.counter }}">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="{% url 'edit_https' http_s.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro" data-in-processed ="{{ http_s.processed_by }}"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'edit_https' http.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro" data-in-processed ="{{ http.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitorear el servicio" data-service-id="{{ http_s.id }}"
-                    data-in-processed-by="{{ http_s.processed_by }}" data-is-monitoring="{{ http_s.is_monitoring }}"  name="service_id">    
+                    title="Monitorear el servicio" data-service-id="{{ http.id }}"
+                    data-in-processed-by="{{ http.processed_by }}" data-is-monitoring="{{ http.is_monitoring }}"  name="service_id">    
                         <i class="fas fa-pause"></i>
                   
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"  data-objeto-id="{{http_s.id }}" data-processed="{{ http_s.processed_by }}"><i class="fas fa-trash-alt"></i></button>
+                    title="Eliminar Registro"  data-objeto-id="{{http.id }}" data-processed="{{ http.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
-                <a href="{% url 'service_detail' http_s.id %}" type="button"
+                <a href="{% url 'service_detail' http.id %}" type="button"
                     class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
                         class="fas fa-eye"></i></a>
             </div>

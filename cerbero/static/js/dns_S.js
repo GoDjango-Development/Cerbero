@@ -5,20 +5,7 @@ console.log(url);
 
 const socket = new WebSocket(url);
 
- // Evento WebSocket: Cuando se recibe un mensaje del servidor
- socket.onmessage = function (event) {
-    var message = JSON.parse(event.data);
-    var text = JSON.parse(message.text);
 
-    var pk = text.pk
-    var buttonState = text.buttonState
-    console.log('pk:', text.pk);
-    console.log( 'este es el pk'+pk);
-    console.log('buttonState:', text.buttonState);
-
-    actualizarBoton(pk, buttonState);
-
-};
 
 $(document).ready(function () {
     // Crear la tabla con DataTables
@@ -103,7 +90,20 @@ $(document).ready(function () {
         actualizarEstadoEnServidor(serviceId, newState);
     });
 
+    // Evento WebSocket: Cuando se recibe un mensaje del servidor
+    socket.onmessage = function (event) {
+        var message = JSON.parse(event.data);
+        var text = JSON.parse(message.text);
 
+        var pk = text.pk
+        var buttonState = text.buttonState
+        console.log('pk:', text.pk);
+        console.log('este es el pk' + pk);
+        console.log('buttonState:', text.buttonState);
+
+        actualizarBoton(pk, buttonState);
+
+    };
 
 });
 
@@ -147,9 +147,6 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     };
 
 
-   
-
-
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
@@ -179,20 +176,25 @@ function actualizarEstadoEnServidor(serviceId, newState) {
     });
 }
 
+// Actualizar columnas de estados y procesos
 function actualizarColumnas() {
     $.ajax({
         url: "/services/dnsServiceupdate/",
         type: "GET",
         dataType: "json",
         success: function (data) {
+            console.log("Datos recibidos:", data);
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
-            $.each(data, function (elemento) {
+            $.each(data, function (index, elemento) {
                 var serviceId = elemento.id; // Obtén el ID del servicio
+                console.log("ID del servicio:", serviceId);
 
                 // Actualiza las columnas utilizando el ID del servicio
                 $("#status_" + serviceId).html(elemento.status);
                 $("#process_" + serviceId).html(elemento.processed_by);
             });
+
+            console.log("Primer elemento de los datos:", data[0]);
         },
         error: function (xhr, status, error) {
             console.error("Error al obtener los datos:", error);
@@ -200,8 +202,9 @@ function actualizarColumnas() {
     });
 }
 
-// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 5 segundos)
-setInterval(actualizarColumnas, 5000);
+// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
+setInterval(actualizarColumnas, 1000);
+
 
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());

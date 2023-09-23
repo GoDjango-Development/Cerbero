@@ -49,54 +49,52 @@ Listado de servicios DNS
 {% endblock %}
 
 {% block rows %}
-{% for dns_s in dns_s %}
+{% for dns in dns_s %}
 <tr>
-    <td scope="col" style="width: 20%;">{{ dns_s.name}}</td>
-    <td scope="col" style="width: 15%;">{{ dns_s.ip_address}}</a></td>
-    <td scope="col" style="width: 15%;">{{ dns_s.port}}</td>
-    <td scope="col" style="width: 15%;">{{ dns_s.number_probe}}</td>
-    <td scope="col" style="width: 15%;">{{ dns_s.probe_timeout}}</td>
+    <td scope="col" style="width: 20%;">{{ dns.name}}</td>
+    <td scope="col" style="width: 15%;">{{ dns.ip_address}}</a></td>
+    <td scope="col" style="width: 15%;">{{ dns.port}}</td>
+    <td scope="col" style="width: 15%;">{{ dns.number_probe}}</td>
+    <td scope="col" style="width: 15%;">{{ dns.probe_timeout}}</td>
     <td scope="col" style="width: 3%;" id="status_{{dns.id}}" class="">
-    {% if dns_s.status == 'up' %}
+    {% if dns.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
-    {% elif dns_s.status == 'down' %} 
+    {% elif dns.status == 'down' %} 
         <i class="fas fa-circle" style="color: red;"></i>
-    {% elif dns_s.status == 'error' %} 
+    {% elif dns.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
-        <i class="fas fa-circle" style="color: grey ;"></i>
     {% endif %}
     </td>
     <td scope="col" style="width: 15%;" id="process_{{dns.id}}">
     
-    {% if dns_s.processed_by == 'Terminado' %}
+    {% if dns.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif  dns_s.processed_by == 'Detenido'%} 
+    {% elif  dns.processed_by == 'Detenido'%} 
         <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
-    {% elif dns_s.processed_by == 'Monitoreando' %}
+    {% elif dns.processed_by == 'Monitoreando' %}
         <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
-        <h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>
     {% endif %}
     </td>
 
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="{% url 'edit_dns' dns_s.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro" data-in-processed ="{{ dns_s.processed_by }}"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'edit_dns' dns.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro" data-in-processed ="{{ dns.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitorear el servicio" data-service-id="{{ dns_s.id }}"
-                    data-in-processed-by="{{ dns_s.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
+                    title="Monitorear el servicio" data-service-id="{{ dns.id }}"
+                    data-in-processed-by="{{ dns.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"  data-objeto-id="{{dns_s.id }}" data-processed="{{ dns_s.processed_by }}"><i class="fas fa-trash-alt"></i></button>
+                    title="Eliminar Registro"  data-objeto-id="{{dns.id }}" data-processed="{{ dns.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
-                <a href="{% url 'service_detail_dns' dns_s.id %}" type="button"
+                <a href="{% url 'service_detail_dns' dns.id %}" type="button"
                     class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
                         class="fas fa-eye"></i></a>
             </div>

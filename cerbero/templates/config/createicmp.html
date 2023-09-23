@@ -1,6 +1,8 @@
 {% extends 'base/form.html' %}
 {%load widget_tweaks%}
-
+{% block title %}
+Registrar servicio ICMP | Cerbero
+{% endblock title %}
 {% block content %}
     <form method="post"  enctype="multipart/form-data">
         {% csrf_token %}
@@ -8,7 +10,7 @@
         <div class="card card-primary">
             <div class=" card-header">
                     <b>
-                            <i class="fas fa-plus"> </i> Registrar servicio HTTP/S
+                            <i class="fas fa-plus"> </i> Registrar servicio ICMP
                         </b>
             </div>
 

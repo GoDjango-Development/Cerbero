@@ -37,69 +37,9 @@
     <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
     <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
     <style></style>
-    <link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/css/dataTables.bootstrap4.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/css/responsive.bootstrap4.min.css' %}" />
-    <script src="{% static 'lib/datatables-1.10.20/js/jquery.dataTables.js' %}"></script>
-    <script src="{% static 'lib/datatables-1.10.20/js/dataTables.bootstrap4.min.js' %}"></script>
-    <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
-    <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
-
     <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
-    <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
-    <script>
-      // Función para obtener la duración de la sesión en segundos
-      function obtenerDuracionSesion() {
-        // Aquí debes proporcionar la duración de la sesión en segundos
-        // Puedes obtenerla desde tu backend o establecerla manualmente
-        return 1; // 30 minutos
-      }
     
-      
-    
-      // Función para mostrar la notificación persistente
-      function mostrarNotificacion() {
-        Toastify({
-          text: "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
-          duration: -1, // Duración infinita
-          close: true,
-          onClick: function() { 
-            Toastify({
-              text: "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.",
-              duration: -1, // Duración infinita
-              close: true,
-              onClick: function() { 
-                // Redirigir al usuario a la URL de inicio de sesión en Django
-                window.location.href = "{% url 'login' %}";
-              }
-            }).showToast();
-          }
-        }).showToast();
-      }
-    
-      // Función para redirigir al usuario a la URL de inicio de sesión en Django
-      function redirigirALogin() {
-        window.location.href = "{% url 'login' %}";
-      }
-    
-      // Función para verificar el tiempo de inactividad y mostrar la notificación si la sesión ha expirado
-      function verificarInactividad() {
-        console.log('entre aca ya')
-        var duracionSesion = obtenerDuracionSesion();
-        var marcaTiempoUltimaActividad = obtenerMarcaTiempoUltimaActividad();
-        var tiempoTranscurrido = Math.floor(Date.now() / 1000) - marcaTiempoUltimaActividad;
-    
-        if (tiempoTranscurrido >= duracionSesion) {
-          mostrarNotificacion();
-          redirigirALogin();
-        }
-      }
-    
-      // Ejecutar la verificación de inactividad al cargar la página
-      window.onload = function() {
-        verificarInactividad();
-      };
-    </script>
-    <style></style>
+   
 
     <!-- Functions -->
     <!-- Block head -->

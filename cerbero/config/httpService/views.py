@@ -157,7 +157,6 @@ def view_https(request):
     return render(request, 'config/listhttp.html', contexto)
 
 
-@login_required(login_url='login', redirect_field_name='login')
 def statushttprecord(request, pk):
     service = http_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -191,15 +190,14 @@ def statushttprecord(request, pk):
     return JsonResponse(dataa, safe=False)
 
 
-@login_required(login_url='login', redirect_field_name='login')
 def update_data_http(request):
     datos = http_s.objects.all()
 
     update = []
-    for datos in datos:
-        status = datos.status
-        processed_by = datos.processed_by
-        id = datos.pk
+    for dato in datos:
+        status = dato.status
+        processed_by = dato.processed_by
+        id = dato.pk
         # Crea el contenido HTML personalizado para la columna "Status" en función del valor
         if status == 'up':
             status_html = '<i class="fas fa-circle" style="color: green;"></i>'

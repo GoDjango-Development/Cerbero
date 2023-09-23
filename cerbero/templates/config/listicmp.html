@@ -46,33 +46,31 @@ Listado de servicios ICMP
 {% endblock %}
 
 {% block rows %}
-{% for icmp_s in icmp_s %}
+{% for icmp in icmp_s %}
 <tr>
-    <td scope="col" style="width: 20%;">{{ icmp_s.name }}</td>
-    <td scope="col" style="width: 15%;">{{ icmp_s.dns_ip}}</td>
-    <td scope="col" style="width: 15%;">{{ icmp_s.number_probe }}</td>
-    <td scope="col" style="width: 15%;">{{ icmp_s.probe_timeout }}</td>
-    <td scope="col" style="width: 3%;" id="status_{{ icmp_s.id }}" class="">
-    {% if icmp_s.status == 'up' %}
+    <td scope="col" style="width: 20%;">{{ icmp.name }}</td>
+    <td scope="col" style="width: 15%;">{{ icmp.dns_ip}}</td>
+    <td scope="col" style="width: 15%;">{{ icmp.number_probe }}</td>
+    <td scope="col" style="width: 15%;">{{ icmp.probe_timeout }}</td>
+    <td scope="col" style="width: 3%;" id="status_{{ icmp.id }}" class="">
+    {% if icmp.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
-    {% elif icmp_s.status == 'down' %} 
+    {% elif icmp.status == 'down' %} 
         <i class="fas fa-circle" style="color: red;"></i>
-    {% elif icmp_s.status == 'error' %} 
+    {% elif icmp.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
-        <i class="fas fa-circle " style="color: grey;"></i>
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process_{{ tcp_s.id }}">
+    <td scope="col" style="width: 15%;" id="process_{{icmp.id }}">
     
-    {% if icmp_s.processed_by == 'Terminado' %}
+    {% if icmp.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif  icmp_s.processed_by == 'Detenido'%} 
+    {% elif  icmp.processed_by == 'Detenido'%} 
         <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
-    {% elif icmp_s.processed_by == 'Monitoreando' %}
+    {% elif icmp.processed_by == 'Monitoreando' %}
         <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
-        <h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>
 
     {% endif %}
         
@@ -82,20 +80,20 @@ Listado de servicios ICMP
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="{% url 'edit_icmp' icmp_s.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro" data-in-processed ="{{ icmp_s.processed_by }}"><i class="fas fa-edit"></i></a>
+                <a href="{% url 'edit_icmp' icmp.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro" data-in-processed ="{{ icmp.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitorear el servicio" data-service-id="{{ icmp_s.id }}"
-                    data-in-processed-by="{{ icmp_s.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
+                    title="Monitorear el servicio" data-service-id="{{ icmp.id }}"
+                    data-in-processed-by="{{ icmp.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"  data-objeto-id="{{icmp_s.id }}" data-processed="{{ icmp_s.processed_by }}"><i class="fas fa-trash-alt"></i></button>
+                    title="Eliminar Registro"  data-objeto-id="{{icmp.id }}" data-processed="{{ icmp.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
-                <a href="{% url 'service_detail_icmp' icmp_s.id %}" type="button"
+                <a href="{% url 'service_detail_icmp' icmp.id %}" type="button"
                     class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
                         class="fas fa-eye"></i></a>
             </div>
