@@ -2,114 +2,240 @@
 {% load widget_tweaks %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png"  />
-    <title>
-    Inicio de sesión | Cerbero
-    </title>
-    <!-- Font Awesome Icons -->
-    <link rel="stylesheet" href="{% static 'lib/fontawesome-free/css/all.min.css' %}" />
-    <!-- Theme style -->
-    <link rel="stylesheet" href="{% static 'lib/adminlte-3.1.0/css/adminlte.min.css' %}" />
-    <!-- jQuery -->
-    <script src="{% static 'lib/jquery/jquery.min.js' %}"></script>
-    <!-- Bootstrap 4 -->
-    <script src="{% static 'lib/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-    <!-- Sweetalert2 -->
-    <script src="{% static 'lib/sweetalert2-9.10.0/sweetalert2.all.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
-    <script src="{% static 'lib/toastr/toastr.min.js' %}"></script>
-    <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}" />
-    <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
-    <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
 
-    <style>
-      link[rel="icon"] {
-        width: 100px;
-        height: 100px;
-      }
-      .login-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-      }
-      
-      .login-box {
-        max-width: 2000px;
-        width: 500px;
-        border-radius: 5px;
-        background-color: #fff;
-        padding: 20px;
-        height: 600px;
-        margin-top: 100px;
-        /* Ajusta el valor de margen superior según tus necesidades */
-      }
-      
-      .login-logo {
-        text-align: center;
-      }
-      
-      .login-logo img {
-        max-width: 100%;
-        width: 300px;
-        height: auto;
-        margin-left: auto;
-        margin-right: auto;
-      }
-    </style>
-  </head>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
+  <title>Inicio de sesión | Cerbero</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="{% static 'lib/fontawesome-free/css/all.min.css' %}" />
+  <!-- Theme style -->
+  <link rel="stylesheet" href="{% static 'lib/adminlte-3.1.0/css/adminlte.min.css' %}" />
+  <!-- jQuery -->
+  <script src="{% static 'lib/jquery/jquery.min.js' %}"></script>
+  <!-- Bootstrap 4 -->
+  <script src="{% static 'lib/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+  <!-- Sweetalert2 -->
+  <script src="{% static 'lib/sweetalert2-9.10.0/sweetalert2.all.min.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
+  <script src="{% static 'lib/toastr/toastr.min.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}" />
+  <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
+  <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
 
-  <body class="hold-transition login-page">
-    <div class="login-container">
-      <div class="login-box">
-        <div class="login-logo">
-          <img src="{% static 'img/logo.png' %}" alt="Logo" />
-        </div>
-        <div class="card">
-          <div class="card-body login-card-body">
-            <form method="post">
-              {% csrf_token %}
-              <div class="form-group">
-                <label for="username"><i class="fas fa-user"></i> Usuario:</label>
-                <input type="text" name="username" id="username" class="form-control" required placeholder="Usuario" autocomplete="off" />
+  <style>
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      max-width: 1000px;
+      width: 500px;
+      border-radius: 5px;
+      background-color: #fff;
+      padding: 20px;
+      height: 600px;
+      /* Ajusta el valor de margen superior según tus necesidades */
+    }
+
+    .login-logo img {
+      max-width: 600px;
+      width: 180px;
+      height: auto;
+      margin-left: auto;
+      margin-right: auto;
+      margin-bottom: 30px;
+    }
+  </style>
+
+  <script>
+
+    $(document).ready(function () {
+
+
+      $('#registroForm').submit(function (e) {
+        e.preventDefault(); // Evitar la acción por defecto del formulario
+
+        // Obtener los valores del formulario
+        var username = $('#usernamer').val();
+        console.log('este' + username)
+        var password1 = $('#password1').val();
+        var password2 = $('#password2').val();
+
+
+          // Validar los campos del formulario
+          if (username === '' && password1 === '' && password2 === '') {
+            toastr.error('Por favor, completa todos los campos.');
+            return;
+          }
+  
+          if (password1 !== password2) {
+            toastr.error('Las contraseñas no coinciden.');
+            return;
+          }
+
+        // Obtener el token CSRF
+        var csrftoken = getCookie('csrftoken');
+
+        // Realizar la solicitud AJAX para registrar el usuario
+        $.ajax({
+          type: 'POST',
+          url: '{% url "register" %}',
+          data: {
+            'username': username,
+            'password1': password1,
+            'password2': password2,
+            'csrfmiddlewaretoken': csrftoken
+          },
+          success: function (response) {
+            if (response.success) {
+              // Registro exitoso
+              $('#registroModal').modal('hide'); // Cerrar el modal de registro
+              // Obtener los valores del formulario
+              $('#usernamer').val('');
+              $('#password1').val('');
+              $('#password2').val('');
+              toastr.success('Usuario creado con exito')
+
+            }
+          },
+          error: function (xhr, status, response) {
+            // Error en la solicitud AJAX
+            toastr.error('Error en el registro de usuario. Por favor, intenta nuevamente.')
+            console.log(xhr.responseText);
+            console.log(response)
+            if (response.errors) {
+              var errorMessage = '';
+              for (var field in response.errors) {
+                errorMessage += '<li>' + response.errors[field].join(', ') + '</li>';
+              }
+              toastr.error('<ul>' + errorMessage + '</ul>');
+            }
+          }
+
+
+        });
+
+
+      });
+    });
+
+
+    function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+
+    }
+
+  </script>
+</head>
+
+<body class="hold-transition login-page">
+  <div class="login-container">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="{% static 'img/logo.png' %}" alt="Logo" />
+      </div>
+      <div class="card">
+        <div class="card-body login-card-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="username"><i class="fas fa-user"></i> Usuario:</label>
+              <input type="text" name="username" id="username" class="form-control" required placeholder="Usuario"
+                autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="password"><i class="fas fa-lock"></i> Contraseña:</label>
+              <input type="password" name="password" id="password" class="form-control" required
+                placeholder="Contraseña" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+              {% if not user_registered %}
+              <div class="text-center mt-3">
+                <p>¿No tienes una cuenta?</p>
+                <a href="#" class="btn btn-secondary btn-block" data-toggle="modal"
+                  data-target="#registroModal">Registrarse</a>
               </div>
-              <div class="form-group">
-                <label for="password"><i class="fas fa-lock"></i> Contraseña:</label>
-                <input type="password" name="password" id="password" class="form-control" required placeholder="Contraseña" autocomplete="off" />
-              </div>
-              <div class="form-group">
-                <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
-              </div>
-            </form>
-          </div>
+              {% endif %}
+            </div>
+          </form>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Dentro de tu archivo HTML -->
-{% if messages %}
-<script>
-  $(document).ready(function() {
-    {% for message in messages %}
+  <!-- Modal de Registro -->
+  <div class="modal fade" id="registroModal" tabindex="-1" role="dialog" aria-labelledby="registroModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="registroModalLabel">Registro de Usuario</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+              aria-hidden="true">&times;</span></button>
+        </div>
+        <div class="modal-body">
+          <!-- Formulario de Registro -->
+          <form id="registroForm" method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+              <label for="usernamer">Nombre de usuario:</label>
+              <input type="text" class="form-control" id="usernamer" name="usernamer" required />
+            </div>
+            <div class="form-group">
+              <label for="password1">Contraseña:</label>
+              <input type="password" class="form-control" id="password1" name="password1" required />
+            </div>
+            <div class="form-group">
+              <label for="password2">Confirmar Contraseña:</label>
+              <input type="password" class="form-control" id="password2" name="password2" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Registrarse</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dentro de tu archivo HTML -->
+  {% if messages %}
+  <script>
+    $(document).ready(function () {
+      {% for message in messages %}
       {% if message.tags %}
-        {% if 'success' in message.tags %}
-          toastr.success("{{ message }}", "Éxito");
-        {% elif 'warning' in message.tags %}
-          toastr.warning("{{ message }}", "Advertencia");
-        {% elif 'error' in message.tags %}
-          toastr.error("{{ message }}", "Error");
-        {% else %}
-          toastr.info("{{ message }}");
-        {% endif %}
+      {% if 'success' in message.tags %}
+      toastr.success("{{ message }}", "Éxito");
+      {% elif 'warning' in message.tags %}
+      toastr.warning("{{ message }}", "Advertencia");
+      {% elif 'error' in message.tags %}
+      toastr.error("{{ message }}", "Error");
       {% else %}
-        toastr.info("{{ message }}");
+      toastr.info("{{ message }}");
       {% endif %}
-    {% endfor %}
-  });
-</script>
-{% endif %}
-  </body>
+      {% else %}
+      toastr.info("{{ message }}");
+      {% endif %}
+      {% endfor %}
+    });
+  </script>
+  {% endif %}
+</body>
+
 </html>

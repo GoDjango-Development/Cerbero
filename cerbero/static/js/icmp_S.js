@@ -94,25 +94,26 @@ $(document).ready(function () {
     });
 
     
-    // Evento WebSocket: Cuando se recibe un mensaje del servidor
-    socket.onmessage = function (event) {
-        var message = JSON.parse(event.data);
-        var text = JSON.parse(message.text);
-
-        var pk = text.pk
-        var buttonState = text.buttonState
-        console.log('pk:', text.pk);
-        console.log('este es el pk' + pk);
-        console.log('buttonState:', text.buttonState);
-
-        actualizarBoton(pk, buttonState);
-
-    };
+   
 
 
 
 });
 
+ // Evento WebSocket: Cuando se recibe un mensaje del servidor
+ socket.onmessage = function (event) {
+    var message = JSON.parse(event.data);
+    var text = JSON.parse(message.text);
+
+    var pk = text.pk
+    var buttonState = text.buttonState
+    console.log('pk:', text.pk);
+    console.log('este es el pk' + pk);
+    console.log('buttonState:', text.buttonState);
+
+    actualizarBoton(pk, buttonState);
+
+};
 
 function actualizarBoton(serviceId, iniciarMonitoreo) {
     var btn = $('[data-service-id="' + serviceId + '"]');

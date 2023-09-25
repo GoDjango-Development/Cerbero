@@ -25,6 +25,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('inicio', config.home.views.dashboard , name='home'),
     path('login/', config.home.views.login_view , name='login'),
+    path('register/', config.home.views.register_user , name='register'),
+    
     path('logout/', config.home.views.logout_view , name='logout'),
     path('services/', include('config.urls')),
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
