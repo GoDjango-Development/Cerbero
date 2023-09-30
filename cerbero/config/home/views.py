@@ -18,14 +18,13 @@ from django.http import HttpResponseRedirect
 def dashboard(request):
     return render(request, 'config/dashboard.html')
 
-@login_required(login_url='login', redirect_field_name='login')
-def admin(request):
-    return render(request, 'config/admin_home.html')
+# @login_required(login_url='login', redirect_field_name='login')
+# def admin(request):
+#     return render(request, 'config/admin_home.html')
 
 
 
 @never_cache
-@login_required
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']

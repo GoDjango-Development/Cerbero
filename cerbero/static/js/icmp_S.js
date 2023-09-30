@@ -1,5 +1,5 @@
 //Crear una conexión WebSocket
-let url = 'ws://127.0.0.1:8000/ws/buttons/';
+let url = "ws://"+ window.location.host + "/ws/buttons/";
 
 console.log(url);
 
