@@ -1,0 +1,83 @@
+{% extends 'base/list_admin.html' %}
+{% load static %}
+
+
+{% block head_list %}
+<script src="{% static 'js/admin.js' %}"></script>
+{% if messages %}
+  <script>
+    $(document).ready(function() {
+      {% for message in messages %}
+        {% if message.tags %}
+          {% if 'create' or 'edit' in message.tags %}
+            toastr.success("{{ message }}");
+          {% else %}
+            toastr.warning("{{ message }}");
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+    });
+  </script>
+{% endif %}
+
+
+
+{% endblock head_list %}
+
+{% block title %}
+Listado de Usuarios | Cerbero
+{% endblock title %}
+
+{% block title_list %}
+Listado de Usuarios
+{% endblock %}
+
+{% block columns %}
+<tr>
+    <th>Usuario </th>
+    <th>Nombres y Apellidos</th>
+    <th>Correo</th>
+    <th>Fecha de Registro</th>
+    <th>Último acceso</th>
+    <th>Grupo</th>
+    <th>Permisos</th>
+    <th>Opciones</th>
+</tr>
+
+{% endblock %}
+
+{% block rows %}
+{% for user in users %}
+<tr>
+    <td scope="col" style="width: 20%;">{{ user.username }}</td>
+    <td scope="col" style="width: 30%;">{{ user.first_name}} {{ user.last_name }}</a></td>
+    <td scope="col" style="width: 30%;">{{ user.email }}</td>
+    <td scope="col" style="width: 15%;">{{ user.date_joined|date:"d/m/Y H:i:s" }}</td>
+    <td scope="col" style="width: 15%;">{{ user.last_login |date:"d/m/Y H:i:s"  }}</td>
+    <td scope="col" style="width: 15%;">{{ user.groups.name }}</td>
+    <td scope="col" style="width: 15%;">{{user.user_permissions.all}}</td>
+    
+
+    <td scope="col" style="width: 10%;">
+        <div class="row">
+            <div class="col-12 col-sm-6 mb-1 ">
+                <a href="#" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro"><i class="fas fa-edit"></i></a>
+            </div>
+           
+            <div class="col-12 col-sm-6 mb-1 ">
+                <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+                    title="Eliminar Registro"><i class="fas fa-trash-alt"></i></button>
+            </div>
+           
+        </div>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+{% block buttons_list %}
+<a href="#" class="btn btn-primary btn-flat btnTest">
+    <i class="fas fa-plus"></i> Nuevo registro
+</a>
+
+{% endblock %}

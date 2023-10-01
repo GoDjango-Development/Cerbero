@@ -1,0 +1,53 @@
+{% extends 'base/body.html' %}
+{% load static %}
+{% block head %}
+  {% block head_list %}
+
+  {% endblock %}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-12">
+      <!-- Profile Image -->
+      <div class="card card-primary">
+        <div class="card-body box-profile">
+          <div class="text-center">
+            <img class="profile-user-img img-fluid img-circle" src="{{ request.user.usercontactinfo.get_image }}" alt="User profile picture" />
+          </div>
+
+          <h3 class="profile-username text-center">{{ request.user.firstname }} {{ request.user.lastname }} ( {{ request.user.username }} )</h3>
+
+          <p class="text-muted text-center">
+            {% for g in request.user.groups.all %}
+              {% if g.name == 'owner' %}
+                <strong>Propietario de servicios</strong>
+              {% elif g.name == 'staff' %}
+                <strong>Supervisor de servicios</strong>
+              {% else %}
+                <strong>Administrador del sistema</strong>
+              {% endif %}
+            {% endfor %}
+          </p>
+
+          <ul class="list-group list-group-unbordered mb-3">
+            <li class="list-group-item">
+              <b>Followers</b> <a class="float-right">1,322</a>
+            </li>
+            <li class="list-group-item">
+              <b>Following</b> <a class="float-right">543</a>
+            </li>
+            <li class="list-group-item">
+              <b>Friends</b> <a class="float-right">13,287</a>
+            </li>
+          </ul>
+
+          <a href="#" class="btn btn-primary btn-block"><b>Follow</b></a>
+        </div>
+        <!-- /.card-body -->
+      </div>
+      <!-- /.card -->
+    </div>
+    <!-- /.col -->
+  </div>
+{% endblock %}

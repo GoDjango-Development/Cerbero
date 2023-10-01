@@ -50,6 +50,8 @@ INSTALLED_APPS = [
     # lib
     'widget_tweaks',
     'channels',
+    'avatar',
+   
 
 ]
 
@@ -147,18 +149,19 @@ mimetypes.add_type("text/javascript", ".js", True)
 mimetypes.add_type("text/css", ".css", True)
 
 
-                                  
-
 STATIC_URL = '/static/'
-
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
 MEDIA_URL = '/media/'
-if DEBUG:
-    STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
-else:
-    STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+if not DEBUG:
+  
+
+    STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -16,7 +16,7 @@ from asgiref.sync import async_to_sync
 
 
 def is_creator_admin(user, service):
-    return service.created_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+    return service.create_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
 
 
 def verify_edit_allowed(view_func):

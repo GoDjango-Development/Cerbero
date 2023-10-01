@@ -9,6 +9,7 @@ admin.site.register(DNSService)
 admin.site.register(TCPService)
 admin.site.register(HTTPService)
 admin.site.register(ICMPService)
+admin.site.register(UserContactInfo)
 
 admin.site.register(ServiceStatusTCP)
 admin.site.register(ServiceStatusHttp)

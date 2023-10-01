@@ -37,8 +37,7 @@ class ServiceHTTPForm(forms.ModelForm):
 
     class Meta:
         model = HTTPService
-        fields = ("name", "port", "url", "number_probe", "probe_timeout")
-
+        fields = ("name", "port", "url", "number_probe", "probe_timeout")                                                                                                                                          
     def clean_name(self):
         name = self.cleaned_data.get('name')
         existing_services = HTTPService.objects.exclude(pk=self.instance.pk)

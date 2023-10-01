@@ -1,6 +1,11 @@
 from django.db import models
-from django.urls import reverse
 from django.contrib.auth.models import User
+from django.db.models.signals import post_save 
+from django.conf import settings
+from cerbero.settings import MEDIA_URL, STATIC_URL
+from django.contrib.auth import get_user_model
+import os
+from PIL import Image
 
 
 # Create your models here.
@@ -139,3 +144,32 @@ class ServiceStatusICMP(models.Model):
         ordering = ['-timestamp']
 
 
+class UserContactInfo(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='users/%Y/%m/%d', null=True, blank=True)
+    phone_number = models.CharField(max_length=20)
+
+    
+    def __str__(self):
+        return self.user.username
+
+    def get_image(self):
+        if self.image:
+            return '{}{}'.format(MEDIA_URL, self.image)
+        return '{}{}'.format(STATIC_URL, 'img/default-150x150.png')
+
+
+  
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        UserContactInfo.objects.create(user=instance)
+
+
+# def save_user_profile(sender, instance, **kwargs):
+#     instance.profile.save()
+
+# created profile
+post_save.connect(create_user_profile, sender=User)
+# save created profile
+# post_save.connect(save_user_profile, sender=User)
+  

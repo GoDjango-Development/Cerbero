@@ -18,7 +18,7 @@ import json
 
 
 def is_creator_admin(user, service):
-    return service.created_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+    return service.create_by == user or user.groups.filter(name='staff').exists()
 
 
 def verify_edit_allowed(view_func):
@@ -232,7 +232,7 @@ def update_data_http(request):
 @verify_edit_allowed
 def edit_https(request, pk):
     service = get_object_or_404(http_s, pk=pk)
-
+    print(service.create_by)
     if request.method == 'POST':
         form = ServiceHTTPForm(request.POST, instance=service)
         # Quita la validación del campo 'number_probe' si el servicio está detenido y el campo está vacío

@@ -6,9 +6,11 @@ from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth import authenticate, login
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, User
+from config.models import UserContactInfo
 from django.contrib.auth.forms import UserCreationForm
-
+from django.views.generic import TemplateView, View
+# from .forms import EditProfileForm
 from django.http import JsonResponse
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -18,9 +20,14 @@ from django.http import HttpResponseRedirect
 def dashboard(request):
     return render(request, 'config/dashboard.html')
 
-# @login_required(login_url='login', redirect_field_name='login')
-# def admin(request):
-#     return render(request, 'config/admin_home.html')
+@login_required(login_url='login', redirect_field_name='login')
+def admin(request):
+    return render(request, 'config/admin_home.html')
+
+
+def user_list(request):
+    users = User.objects.all()
+    return render(request,'config/userlist.html', {'users':users})
 
 
 
@@ -32,8 +39,14 @@ def login_view(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            # Redireccionar a la página de inicio después del inicio de sesión exitoso
-            return redirect('home')
+             # Redirigir a la plantilla del administrador para superusuarios
+            if request.user.is_superuser:
+                print('pase por aca')
+                return redirect('admin_home') 
+            else:
+                # Redirigir a la plantilla del usuarios
+                print('entre aqui')
+                return redirect('home')
         else:
             # Mostrar un mensaje de error si las credenciales son inválidas
             messages.warning(request, "Usuario o contraseña incorrecta.")
@@ -42,8 +55,11 @@ def login_view(request):
         if request.user.is_authenticated:
             # Redireccionar al usuario si ya ha iniciado sesión
             if request.user.is_superuser:
-                return redirect('admin_home')  # Redirigir a la plantilla del administrador para superusuarios
+                print('pase por aca')
+                return redirect('admin_home') 
+            # Redirigir a la plantilla del administrador para superusuarios
             else:
+                print('entre aqui')
                 return redirect('home')
         else:
             response = render(request, 'registration/login.html')
@@ -91,4 +107,47 @@ def register_user(request):
             return JsonResponse({'success': False, 'message': 'Por favor, corrige los errores en el formulario.', 'errors': errors})
     else:
         return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+ 
+ 
+@login_required(login_url='login', redirect_field_name='login')    
+def profile_view(request):
+    user = request.user
+    usercontactinfo = UserContactInfo.objects.get(user=user)
     
+    
+    context = {
+        'user': user,
+        'usercontactinfo': usercontactinfo
+    }
+    if request.user.is_superuser:
+        return render(request, 'config/detail_profile_admin.html', context)
+
+    else:
+        return render(request, 'config/detail_profile.html', context) 
+
+  
+# def edit_profile(request):
+#     user = request.user.id
+#     profile = Perfil.objects.get(usuario_id=user)
+#     user_basic_info = User.objects.get(id=user)
+
+#     if request.method == 'POST':
+#         form=EditProfileForm(request.POST, request.FILES, instance=profile)
+#         if form.is_valid():
+#             user_basic_info.first_name = form.cleaned_data.get('first_name')
+#             user_basic_info.last_name = form.cleaned_data.get('last_name')
+
+#             profile.foto = form.cleaned_data.get('foto')
+           
+#             profile.save()
+#             user_basic_info.save()
+#             return redirect('home', username=request.user.username)
+#     else:
+#         form=EditProfileForm(instance=profile)
+
+#     context={
+#         'form':form,
+#     }
+
+
+#     return render(request, 'config/edit_profile.html', context)

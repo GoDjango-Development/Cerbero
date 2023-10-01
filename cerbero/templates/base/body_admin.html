@@ -1,1 +1,39 @@
 {% extends 'base/base.html' %}
+{% block body %}
+<body
+  class="sidebar-mini layout-fixed control-sidebar-slide-open layout-navbar-fixed"
+  style="height: auto"
+>
+  <div class="wrapper">
+    <!-- Header -->
+    {% include 'base/header_admin.html' %}
+    <!-- Sidebar-->
+    {% include 'base/sidebar_admin.html'%}
+    <div class="content-wrapper">
+      <section class="content-header">
+        <div class="container-fluid">
+          <div class="mb-2 row">
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-left">
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main content -->
+      <section class="content">
+        <div class="container-fluid">
+        {% block content %}
+
+        {% endblock %}</div>
+      </section>
+    </div>
+    <!-- Footer -->
+    {% comment %} {% include 'footer.html'%} {% endcomment %}
+  </div>
+  {% block script %}
+
+        {% endblock %}</div>
+
+   {% endblock %}

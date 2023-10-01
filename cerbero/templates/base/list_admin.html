@@ -1,0 +1,56 @@
+{% extends 'base/body_admin.html' %}
+{% load static %}
+{% block head %}
+
+{% block head_list %}
+
+{% endblock %}
+
+{% endblock %}
+
+
+
+
+
+{% block content %}
+<div class="card ">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-list-dots"></i>
+            {% block title_list %}
+
+            {% endblock %}
+        </h3>
+        <div class="card-tools">
+            <ul class="nav nav-pills ml-auto">
+                <li class="nav-item">
+                    {% block buttons_list %}
+
+                    {% endblock %} 
+                </li>
+               
+            </ul>
+        </div>
+    </div>
+    <div class="card-body table-responsive">
+
+        <table class="table table-bordered" id="data">
+            <thead>
+                {% block columns %}
+
+                {% endblock %}
+            </thead>
+            <tbody>
+                {% block rows %}
+
+                {% endblock %}
+            </tbody>
+        </table>
+
+
+    </div>
+
+
+</div>
+
+{% endblock %}
