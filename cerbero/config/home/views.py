@@ -7,13 +7,15 @@ from django.contrib.auth import authenticate, login
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import Group, User
-from config.models import UserContactInfo
+from config.models import Profile
 from django.contrib.auth.forms import UserCreationForm
 from django.views.generic import TemplateView, View
-# from .forms import EditProfileForm
+from .forms import EditProfileForm
 from django.http import JsonResponse
+from django.conf import settings
 from django.urls import reverse
 from django.http import HttpResponseRedirect
+User = get_user_model()
 
 
 @login_required(login_url='login', redirect_field_name='login')
@@ -112,7 +114,7 @@ def register_user(request):
 @login_required(login_url='login', redirect_field_name='login')    
 def profile_view(request):
     user = request.user
-    usercontactinfo = UserContactInfo.objects.get(user=user)
+    usercontactinfo = Profile.objects.get(user=user)
     
     
     context = {
@@ -125,29 +127,32 @@ def profile_view(request):
     else:
         return render(request, 'config/detail_profile.html', context) 
 
-  
-# def edit_profile(request):
-#     user = request.user.id
-#     profile = Perfil.objects.get(usuario_id=user)
-#     user_basic_info = User.objects.get(id=user)
+@login_required(login_url='login', redirect_field_name='login')
+def edit_profile(request):
+    user = request.user.id
+    profile = Profile.objects.get(user__id=user)
+    user_basic_info = User.objects.get(id=user)
 
-#     if request.method == 'POST':
-#         form=EditProfileForm(request.POST, request.FILES, instance=profile)
-#         if form.is_valid():
-#             user_basic_info.first_name = form.cleaned_data.get('first_name')
-#             user_basic_info.last_name = form.cleaned_data.get('last_name')
+    if request.method == 'POST':
+        form=EditProfileForm(request.POST, request.FILES, instance=profile, initial={'first_name': user_basic_info.first_name, 'last_name': user_basic_info.last_name,  'picture': profile.picture})
+        if form.is_valid():
+            user_basic_info.first_name = form.cleaned_data.get('first_name')
+            user_basic_info.last_name = form.cleaned_data.get('last_name')
 
-#             profile.foto = form.cleaned_data.get('foto')
-           
-#             profile.save()
-#             user_basic_info.save()
-#             return redirect('home', username=request.user.username)
-#     else:
-#         form=EditProfileForm(instance=profile)
+            profile.picture = form.cleaned_data.get('picture')
+            
 
-#     context={
-#         'form':form,
-#     }
+            profile.save()
+            user_basic_info.save()
+            return redirect('detile_profile' )
+    else:
+        form=EditProfileForm(instance=profile, initial={'first_name': user_basic_info.first_name, 'last_name': user_basic_info.last_name})
 
+    context={
+        'form':form,
+    }
 
-#     return render(request, 'config/edit_profile.html', context)
+    if request.user.is_superuser:
+        return render(request, 'config/edit_profile_admin.html', context)
+    else:
+        return render(request, 'config/edit_profile.html', context)

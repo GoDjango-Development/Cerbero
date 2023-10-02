@@ -17,13 +17,13 @@
     {% if request.user.is_authenticated %}
       <li class="nav-item dropdown user-menu">
         <a href="" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-expanded="false">
-          <img src="{{ request.user.usercontactinfo.get_image }}" class="user-image img-circle elevation-2" alt="{{ request.user.username }}" />
+          <img src="{{ request.user.profile.picture.url }}" class="user-image img-circle elevation-2" alt="{{ request.user.username }}" />
           <span class="d-none d-md-inline">{{ request.user.username }}</span>
         </a>
         <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right" style="left: inherit; right: 0px;">
           <!-- User image -->
           <li class="user-header bg-primary m-2 rounded">
-            <img src="{{ request.user.usercontactinfo.get_image }}" class="img-circle elevation-2" alt="{{ request.user.username }}" />
+            <img src="{{ request.user.profile.picture.url }}" class="img-circle elevation-2" alt="{{ request.user.username }}" />
 
             <p>{{ request.user.username }}</p>
             {% for g in request.user.groups.all %}

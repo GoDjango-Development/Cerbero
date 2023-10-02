@@ -27,7 +27,7 @@ urlpatterns = [
     path('inicio/', config.home.views.dashboard , name='home'),
     path('login/', config.home.views.login_view , name='login'),
     path('detile_profile/', config.home.views.profile_view , name='detile_profile'),
-    # path('profile/', config.home.views.profile , name='profile'),
+    path('profile/edit', config.home.views.edit_profile , name='edit_profile'),
     path('cerbero/admin/', config.home.views.admin , name='admin_home'),
     path('cerbero/admin/userlist/', config.home.views.user_list , name='user_list'),
     path('register/', config.home.views.register_user , name='register'),
@@ -37,4 +37,5 @@ urlpatterns = [
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 
 ]
-urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

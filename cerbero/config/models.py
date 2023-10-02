@@ -1,10 +1,14 @@
 from django.db import models
+from django.dispatch import receiver    
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save 
 from django.conf import settings
+from django.core.files import File
 from cerbero.settings import MEDIA_URL, STATIC_URL
 from django.contrib.auth import get_user_model
 import os
+import random
+
 from PIL import Image
 
 
@@ -142,34 +146,60 @@ class ServiceStatusICMP(models.Model):
 
     class Meta:
         ordering = ['-timestamp']
+        
+        
+        
+def user_directory_path_profile(instance, filename):
+    profile_picture_name = 'users/{0}/profile.jpg'.format(instance.user.username)
+    full_path = os.path.join(settings.MEDIA_ROOT, profile_picture_name)
+
+    if os.path.exists(full_path):
+        os.remove(full_path)
+
+    return profile_picture_name
 
 
-class UserContactInfo(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='users/%Y/%m/%d', null=True, blank=True)
-    phone_number = models.CharField(max_length=20)
 
-    
+
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    picture = models.ImageField( upload_to=user_directory_path_profile)
+    date_created = models.DateField(auto_now_add=True)
+
+   
     def __str__(self):
         return self.user.username
 
-    def get_image(self):
-        if self.image:
-            return '{}{}'.format(MEDIA_URL, self.image)
-        return '{}{}'.format(STATIC_URL, 'img/default-150x150.png')
 
 
-  
+
+@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
-        UserContactInfo.objects.create(user=instance)
+        if not instance.profile.picture:
+            select_random_image(instance.profile)
 
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    try:
+        instance.profile.save()
+    except Profile.DoesNotExist:
+        Profile.objects.create(user=instance)
 
-# def save_user_profile(sender, instance, **kwargs):
-#     instance.profile.save()
+def select_random_image(profile):
+    # Ruta de la carpeta de imágenes
+    image_folder = 'static/img/avatar'
 
-# created profile
-post_save.connect(create_user_profile, sender=User)
-# save created profile
-# post_save.connect(save_user_profile, sender=User)
-  
+    # Obtener la lista de imágenes en la carpeta
+    image_files = os.listdir(image_folder)
+
+    # Seleccionar una imagen al azar de la lista
+    selected_image = random.choice(image_files)
+
+    # Ruta completa de la imagen seleccionada
+    selected_image_path = os.path.join(image_folder, selected_image)
+
+    # Asignar la imagen seleccionada al perfil
+    with open(selected_image_path, 'rb') as f:
+        profile.picture.save(selected_image, File(f))
