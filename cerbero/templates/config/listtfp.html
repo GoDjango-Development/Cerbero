@@ -1,9 +1,7 @@
 {% extends 'base/list.html' %}
 {% load static %}
-
-
 {% block head_list %}
-<script src="{% static 'js/tcp_S.js' %}"></script>
+<script src="{% static 'js/tfp_S.js' %}"></script>
 {% if messages %}
   <script>
     $(document).ready(function() {
@@ -24,14 +22,17 @@
 
 {% endblock head_list %}
 
+
+
 {% block title %}
-Listado de servicios TCP | Cerbero
+Listado de servicios TFProtocol | Cerbero
 {% endblock title %}
 
 {% block title_list %}
-Listado de servicios TCP 
-
+Listado de servicios TFProtocol 
 {% endblock %}
+
+
 
 {% block columns %}
 <tr>
@@ -47,30 +48,30 @@ Listado de servicios TCP
 {% endblock %}
 
 {% block rows %}
-{% for tcp in tcp_s %}
+{% for tfp in tfp_s %}
 <tr>
-    <td scope="col" style="width: 20%;">{{ tcp.name }}</td>
-    <td scope="col" style="width: 15%;">{{ tcp.ip_address}}</a></td>
-    <td scope="col" style="width: 15%;">{{ tcp.number_probe }}</td>
-    <td scope="col" style="width: 15%;">{{ tcp.probe_timeout }}</td>
-    <td scope="col" style="width: 3%;" id="status_{{tcp.id}}" class="">
-    {% if tcp.status == 'up' %}
+    <td scope="col" style="width: 20%;">{{ tfp.name }}</td>
+    <td scope="col" style="width: 15%;">{{ tfp.address}}</a></td>
+    <td scope="col" style="width: 15%;">{{ tfp.number_probe }}</td>
+    <td scope="col" style="width: 15%;">{{ tfp.probe_timeout }}</td>
+    <td scope="col" style="width: 3%;" id="status_{{tfp.id}}" class="">
+    {% if tfp.status == 'up' %}
         <i class="fas fa-circle" style="color: green;"></i>
-    {% elif tcp.status == 'down' %} 
+    {% elif tfp.status == 'down' %} 
         <i class="fas fa-circle" style="color: red;"></i>
-    {% elif tcp.status == 'error' %} 
+    {% elif tfp.status == 'error' %} 
         <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
         <i class="fas fa-circle " style="color: grey;"></i>
     {% endif %}
     </td>
-    <td scope="col" style="width: 15%;" id="process_{{tcp.id}}">
+    <td scope="col" style="width: 15%;" id="process_{{tfp.id}}">
     
-    {% if tcp.processed_by == 'Terminado' %}
+    {% if tfp.processed_by == 'Terminado' %}
         <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif  tcp.processed_by == 'Detenido'%} 
+    {% elif  tfp.processed_by == 'Detenido'%} 
         <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
-    {% elif tcp.processed_by == 'Monitoreando' %}
+    {% elif tfp.processed_by == 'Monitoreando' %}
         <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
 
@@ -82,30 +83,31 @@ Listado de servicios TCP
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="{% url 'edit_tcp' tcp.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro" data-in-processed ="{{ tcp.processed_by }}"><i class="fas fa-edit"></i></a>
+                <a href="{% url "edit_tfp"  tfp.id%}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                    title="Editar Registro" data-in-processed ="{{ tfp.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
                 <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block"
-                    title="Monitorear el servicio" data-service-id="{{ tcp.id }}"
-                    data-in-processed-by="{{ tcp.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
+                    title="Monitorear el servicio" data-service-id="{{ tfp.id }}"
+                    data-in-processed-by="{{ tfp.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"  data-objeto-id="{{tcp.id }}" data-processed="{{ tcp.processed_by }}"><i class="fas fa-trash-alt"></i></button>
+                    title="Eliminar Registro"  data-objeto-id="{{tfp.id }}" data-processed="{{ tfp.processed_by }}"><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
-                <a href="{% url 'service_detail_tcp' tcp.id %}" type="button"
+                <a href="{% url 'service_detail_tfp' tfp.id %}" type="button"
                     class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
                         class="fas fa-eye"></i></a>
-            </div>
+            </div> 
         </div>
     </td>
 </tr>
 {% endfor %}
 {% endblock %}
+
 {% block buttons_list %}
-<a href="{%url 'create_tcp'%}" class="btn btn-primary btn-flat btnTest">
+<a href="{% url "create_tfp" %}" class="btn btn-primary btn-flat btnTest">
     <i class="fas fa-plus"></i> Nuevo registro
 </a>
 {% endblock %}

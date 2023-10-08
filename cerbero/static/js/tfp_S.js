@@ -3,6 +3,7 @@ let url = "ws://" + window.location.host + "/ws/buttons/";
 const socket = new WebSocket(url);
 
 
+
 $(document).ready(function () {
     // Crear la tabla con DataTables
     var table = $('#data').DataTable({
@@ -36,7 +37,7 @@ $(document).ready(function () {
                     if (result.value) {
                         var csrfToken = getCookie('csrftoken');
                         $.ajax({
-                            url: '/services/delete_httpService/' + objetoId + '/',
+                            url: '/services/delete_tfpService/' + objetoId + '/',
                             type: 'POST',
                             headers: { 'X-CSRFToken': csrfToken },
                             success: function (response) {
@@ -123,13 +124,13 @@ $(document).ready(function () {
     bindButtonEvents();
     updateButtonStates();
 
-
 });
+
 
 // Actualizar columnas de estados y procesos
 function actualizarColumnas() {
     $.ajax({
-        url: "/services/httpServiceupdate/",
+        url: "/services/tfpServiceupdate/",
         type: "GET",
         dataType: "json",
         success: function (data) {
@@ -202,11 +203,12 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
+
 // actualizar estado en el servidor del incio o detencion del monitoreo
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
     $.ajax({
-        url: '/services/httpService/' + serviceId + '/',
+        url: '/services/tfpService/' + serviceId + '/',
         type: 'POST',
         headers: { 'X-CSRFToken': csrfToken },
         data: {
@@ -227,6 +229,7 @@ function actualizarEstadoEnServidor(serviceId, newState) {
         }
     });
 }
+
 // Guardar estados locales en la pc de como esta los botones
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());
@@ -247,12 +250,3 @@ function getCookie(name) {
     return cookieValue;
 
 }
-
-
-
-
-
-
-
-
-

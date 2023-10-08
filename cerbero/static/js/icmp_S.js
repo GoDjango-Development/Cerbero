@@ -1,119 +1,162 @@
 //Crear una conexión WebSocket
 let url = "ws://"+ window.location.host + "/ws/buttons/";
-
-console.log(url);
-
 const socket = new WebSocket(url);
-
-
-
 
 
 
 $(document).ready(function () {
     // Crear la tabla con DataTables
     var table = $('#data').DataTable({
-    });
-    $(document).on('click', '.eliminar-btn', function (event) {
-        var objetoId = $(this).data('objeto-id');
-
-        event.preventDefault();
-        var processedByValue = $(this).data("processed");
-        if (processedByValue !== "Esperando" && processedByValue !== "Detenido" && processedByValue !== "Terminado") {
-            toastr.warning("No se puede eliminar el elemento porque la prueba está en curso.");
-        } else {
-            Swal.fire({
-                title: '¿Estás seguro de eliminar el registro?',
-                text: 'Esta acción también elimina el historial de estados de la prueba',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.value) {
-                    var csrfToken = getCookie('csrftoken');
-                    $.ajax({
-                        url: '/services/delete_icmpService/' + objetoId + '/',
-                        type: 'POST',
-                        headers: { 'X-CSRFToken': csrfToken },
-                        success: function (response) {
-                            toastr.success('¡Eliminado! ' + response.mensaje, '', { timeOut: 1000 });
-
-                            setTimeout(function () {
-                                window.location.reload();
-                            }, 1000); // Espera 3 segundos antes de recargar la página
-                        },
-                        error: function (xhr) {
-                            toastr.error('Error: ' + xhr.responseJSON.mensaje, '', { timeOut: 2000 });
-                        }
-                    });
-                }
-            });
+        "drawCallback": function () {
+            bindButtonEvents();
+            updateButtonStates();
         }
+
     });
-    // Verificar si tengo permiso de edición
-    $(".edit-btn").click(function (event) {
-        event.preventDefault();
-        var processedByValue = $(this).data("in-processed");
-        if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
-            toastr.warning("No se puede editar el elemento porque la prueba está en curso o terminada.");
-        } else {
-            var href = $(this).attr("href");
-            if (href) {
-                window.location.href = href;
+
+    function bindButtonEvents() {
+        //Evento del boton eliminar .eliminar-btn
+        $('.eliminar-btn').off().on('click', function (event) {
+            var objetoId = $(this).data('objeto-id');
+
+            event.preventDefault();
+            var processedByValue = $(this).data("processed");
+            if (processedByValue !== "Esperando" && processedByValue !== "Detenido" && processedByValue !== "Terminado") {
+                toastr.warning("No se puede eliminar el elemento porque la prueba está en curso.");
+            } else {
+                Swal.fire({
+                    title: '¿Estás seguro de eliminar el registro?',
+                    text: 'Esta acción también elimina el historial de estados de la prueba',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.value) {
+                        var csrfToken = getCookie('csrftoken');
+                        $.ajax({
+                            url: '/services/delete_icmpService/' + objetoId + '/',
+                            type: 'POST',
+                            headers: { 'X-CSRFToken': csrfToken },
+                            success: function (response) {
+                                toastr.success('¡Eliminado! ' + response.mensaje, '', { timeOut: 1000 });
+
+                                setTimeout(function () {
+                                    window.location.reload();
+                                }, 1000); // Espera 3 segundos antes de recargar la página
+                            },
+                            error: function (xhr) {
+                                toastr.error('Error: ' + xhr.responseJSON.mensaje, '', { timeOut: 2000 });
+                            }
+                        });
+                    }
+                });
             }
-        }
-    });
+        });
 
-    // Obtener el estado almacenado en el atributo data y en el almacenamiento local
-    $('.iniciar-monitoreo-btn').each(function () {
-        var btn = $(this);
-        var serviceId = btn.data('service-id');
-        var storedState = localStorage.getItem('buttonState_' + serviceId);
-        var buttonState = storedState === 'true';
+        // Verificar si tengo permiso de edición .edit-btn
+        $('.edit-btn').off().on('click', function (event) {
+            event.preventDefault();
+            var processedByValue = $(this).data("in-processed");
+            if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
+                toastr.warning("No se puede editar el elemento porque la prueba está en curso o terminada.");
+            } else {
+                var href = $(this).attr("href");
+                if (href) {
+                    window.location.href = href;
+                }
+            }
+        });
 
-        // Actualizar el estado visual del botón
-        actualizarBoton(serviceId, buttonState);
 
-    });
 
-    $(document).on('click', '.iniciar-monitoreo-btn', function () {
-        var btn = $(this);
-        var serviceId = btn.data('service-id');
-        console.log(serviceId);
-        var currentState = btn.data('button-state');
-        var newState = currentState === 'true' ? 'false' : 'true';
-        console.log(newState);
-        // Realizar el cambio visual inmediato
-        actualizarBoton(serviceId, newState === 'true');
+        //Evento del boton de monitioreo
+        $(".iniciar-monitoreo-btn").off().on('click', function () {
+            var btn = $(this);
+            var serviceId = btn.data('service-id');
+            console.log(serviceId);
+            var currentState = btn.data('button-state');
+            var newState = currentState === 'true' ? 'false' : 'true';
+            console.log(newState);
+            // Realizar el cambio visual inmediato
+            actualizarBoton(serviceId, newState === 'true');
 
-        // Realizar la solicitud AJAX para actualizar el estado en el servidor
-        actualizarEstadoEnServidor(serviceId, newState);
-    });
+            // Realizar la solicitud AJAX para actualizar el estado en el servidor
+            actualizarEstadoEnServidor(serviceId, newState);
+        });
 
+
+
+    }
+
+    function updateButtonStates() {
+        // Obtener el estado almacenado en el atributo data y en el almacenamiento local
+        $('.iniciar-monitoreo-btn').each(function () {
+            var btn = $(this);
+            var serviceId = btn.data('service-id');
+            var storedState = localStorage.getItem('buttonState_' + serviceId);
+            var buttonState = storedState === 'true';
+
+            // Actualizar el estado visual del botón
+            actualizarBoton(serviceId, buttonState);
+
+        });
+
+
+        // Evento WebSocket: Cuando se recibe un mensaje del servidor
+        socket.onmessage = function (event) {
+            var message = JSON.parse(event.data);
+            var text = JSON.parse(message.text);
+
+            var pk = text.pk
+            var buttonState = text.buttonState
+            console.log('pk:', text.pk);
+            console.log('este es el pk' + pk);
+            console.log('buttonState:', text.buttonState);
+
+            actualizarBoton(pk, buttonState);
+
+        };
+    }
+
+    bindButtonEvents();
+    updateButtonStates();
     
-   
-
-
-
 });
 
- // Evento WebSocket: Cuando se recibe un mensaje del servidor
- socket.onmessage = function (event) {
-    var message = JSON.parse(event.data);
-    var text = JSON.parse(message.text);
 
-    var pk = text.pk
-    var buttonState = text.buttonState
-    console.log('pk:', text.pk);
-    console.log('este es el pk' + pk);
-    console.log('buttonState:', text.buttonState);
+// Actualizar columnas de estados y procesos
+function actualizarColumnas() {
+    $.ajax({
+        url: "/services/icmpServiceupdate/",
+        type: "GET",
+        dataType: "json",
+        success: function (data) {
+            console.log("Datos recibidos:", data);
+            // Recorre los datos y actualiza las tres últimas columnas en cada fila
+            $.each(data, function (index, elemento) {
+                var serviceId = elemento.id; // Obtén el ID del servicio
+                console.log("ID del servicio:", serviceId);
 
-    actualizarBoton(pk, buttonState);
+                // Actualiza las columnas utilizando el ID del servicio
+                $("#status_" + serviceId).html(elemento.status);
+                $("#process_" + serviceId).html(elemento.processed_by);
+            });
 
-};
+            console.log("Primer elemento de los datos:", data[0]);
+        },
+        error: function (xhr, status, error) {
+            console.error("Error al obtener los datos:", error);
+        }
+    });
+}
+
+// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
+setInterval(actualizarColumnas, 1000);
+
+
 
 function actualizarBoton(serviceId, iniciarMonitoreo) {
     var btn = $('[data-service-id="' + serviceId + '"]');
@@ -160,38 +203,8 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
-
-
-function actualizarColumnas() {
-    $.ajax({
-        url: "/services/icmpServiceupdate/",
-        type: "GET",
-        dataType: "json",
-        success: function (data) {
-            console.log("Datos recibidos:", data);
-            // Recorre los datos y actualiza las tres últimas columnas en cada fila
-            $.each(data, function (index, elemento) {
-                var serviceId = elemento.id; // Obtén el ID del servicio
-                console.log("ID del servicio:", serviceId);
-
-                // Actualiza las columnas utilizando el ID del servicio
-                $("#status_" + serviceId).html(elemento.status);
-                $("#process_" + serviceId).html(elemento.processed_by);
-            });
-
-            console.log("Primer elemento de los datos:", data[0]);
-        },
-        error: function (xhr, status, error) {
-            console.error("Error al obtener los datos:", error);
-        }
-    });
-}
-
-// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
-setInterval(actualizarColumnas, 1000);
-
-
 // actualizar estado en el servidor del incio o detencion del monitoreo
+
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
     $.ajax({
@@ -217,6 +230,7 @@ function actualizarEstadoEnServidor(serviceId, newState) {
     });
 }
 
+// Guardar estados locales en la pc de como esta los botones
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());
 }
@@ -236,9 +250,6 @@ function getCookie(name) {
     return cookieValue;
 
 }
-
-
-
 
 
 

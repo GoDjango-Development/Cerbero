@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Prueba completada</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            line-height: 1.5;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #fff;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .logo {
+            max-width: 200px;
+            height: auto;
+        }
+        
+        .report {
+            margin-bottom: 20px;
+        }
+        
+        .report-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .report-item {
+            margin-bottom: 5px;
+        }
+        
+        .report-item span {
+            font-weight: bold;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                max-width: 100% !important;
+                padding: 10px !important;
+            }
+            
+            .logo {
+                max-width: 100% !important;
+                height: auto !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo" />
+        </div>
+        
+        <div class="report">
+            <h2 class="report-title">Informe de prueba</h2>
+            
+            <div class="report-item">
+                <span>Último estado:</span> {{ service.status }}
+            </div>
+            
+            <div class="report-item">
+                <span>Cantidad de pruebas realizadas:</span> {{ cant_test }}
+            </div>
+            
+            <div class="report-item">
+                <span>Resultados:</span>
+                <ul>
+                    <li>Up: {{ up_count }}</li>
+                    <li>Down: {{ down_count }}</li>
+                    <li>Error: {{ error_count }}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

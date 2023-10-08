@@ -10,7 +10,7 @@
   <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/dataTables.responsive.min.js' %}"></script>
   <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
   {% block title %}
-  Detalles del servicio TCP | Cerbero
+  Detalles del servicio TFProtocol | Cerbero
   {% endblock title %}
   {% endblock %} {% block content %}
   <div class="row">
@@ -44,7 +44,7 @@
             <div class="tab-pane" id="metric">
               <div class="card card-primary">
                 <div class="card-header">
-                  <h3 class="card-title">Gráfica de comportamiento de la prueba: <strong>{{ service.name }}</strong> al (servico TCP: <strong>{{ service.ip_address }}:{{ service.port }}</strong> )</h3>
+                  <h3 class="card-title">Gráfica de comportamiento de la prueba: <strong>{{ service.name }}</strong> al (servico TFProtocol: <strong>{{ service.ip_address }}:{{ service.port }}</strong> )</h3>
                 </div>
                 <div class="card-body">
                   <div class="chart">
@@ -76,7 +76,7 @@
         // Función para actualizar los datos de la tabla
         function refreshData() {
           $.ajax({
-            url: "{% url 'statustcprecord' 0 %}".replace('0', pk),
+            url: "{% url 'statustfprecord' 0 %}".replace('0', pk),
             dataType: 'json',
             success: function (response) {
               var data = response
@@ -178,7 +178,7 @@
     function actualizarDatos() {
       // Realizar solicitud AJAX para obtener los datos JSON
       $.ajax({
-        url: "{% url 'statustcpgraficpoint' 0 %}".replace('0', pk),
+        url: "{% url 'statustfpgraficpoint' 0 %}".replace('0', pk),
         dataType: 'json',
         success: function (response) {
           // Verificar si los datos del JSON son diferentes a los datos existentes
@@ -247,10 +247,7 @@
     var oMin = chart.xAxis[0].min
     var oMax = chart.xAxis[0].max
     
-    // Manejar los eventos de los botones de zoom
-    $('#reset').click(function () {
-      chart.xAxis[0].setExtremes(oMin, oMax)
-    })
+  
     
     $('#zoom').click(function () {
       var xMin = chart.xAxis[0].min

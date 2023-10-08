@@ -28,7 +28,7 @@ def admin(request):
 
 
 def user_list(request):
-    users = User.objects.all()
+    users = User.objects.select_related('profile').all()
     return render(request,'config/userlist.html', {'users':users})
 
 
@@ -134,22 +134,23 @@ def edit_profile(request):
     user_basic_info = User.objects.get(id=user)
 
     if request.method == 'POST':
-        form=EditProfileForm(request.POST, request.FILES, instance=profile, initial={'first_name': user_basic_info.first_name, 'last_name': user_basic_info.last_name,  'picture': profile.picture})
+        form = EditProfileForm(request.POST, request.FILES, instance=profile, initial={'first_name': user_basic_info.first_name, 'last_name': user_basic_info.last_name})
         if form.is_valid():
             user_basic_info.first_name = form.cleaned_data.get('first_name')
             user_basic_info.last_name = form.cleaned_data.get('last_name')
 
-            profile.picture = form.cleaned_data.get('picture')
-            
+            # Actualizar la imagen solo si se proporciona una nueva
+            if 'picture' in request.FILES:
+                profile.picture = request.FILES['picture']
 
             profile.save()
             user_basic_info.save()
-            return redirect('detile_profile' )
+            return redirect('detile_profile')
     else:
-        form=EditProfileForm(instance=profile, initial={'first_name': user_basic_info.first_name, 'last_name': user_basic_info.last_name})
+        form = EditProfileForm(instance=profile, initial={'first_name': user_basic_info.first_name, 'last_name': user_basic_info.last_name})
 
-    context={
-        'form':form,
+    context = {
+        'form': form,
     }
 
     if request.user.is_superuser:

@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     # lib
     'widget_tweaks',
     'channels',
-    'avatar',
    
 
 ]
@@ -183,3 +182,19 @@ CELERY_TASK_TIME_LIMIT = 30 * 60
 
 
 handler403 = 'config.home.views.error_403'
+
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.googlemail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'empresas746@gmail.com'
+EMAIL_HOST_PASSWORD = 'curnnjshummndley'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+DEFAULT_FROM_EMAIL = 'empresas746@gmail.com'
+
+
+
+
+

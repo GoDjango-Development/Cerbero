@@ -1,4 +1,3 @@
-
 from django.contrib import messages
 from functools import wraps
 from django.http import HttpResponseRedirect, HttpResponse, Http404, JsonResponse, HttpResponseForbidden
@@ -6,9 +5,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.urls import reverse
-from config.models import TCPService as tcp_s, ServiceStatusTCP as ServiceStatus
-from .forms import ServiceTCPForm
-from config.tasks import monitoreo_tcp_services
+from config.models import TFProtocolService as tfp_s, ServiceStatusTFProtocol as ServiceStatus
+from .forms import ServiceTFPForm
+from config.tasks import monitoreo_tfp_services
+
 import json
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -22,18 +22,18 @@ def is_creator_admin(user, service):
 def verify_edit_allowed(view_func):
     @wraps(view_func)
     def wrapper(request, pk, *args, **kwargs):
-        service = get_object_or_404(tcp_s, pk=pk)
+        service = get_object_or_404(tfp_s, pk=pk)
 
         if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
             messages.error(
                 request, "No se puede editar el elemento porque la prueba está en curso o terminada.")
-            return redirect('list_tcp')
+            return redirect('list_tfp')
 
         # Verificar si el usuario actual es el creador del servicio o pertenece al grupo "admin"
         if not is_creator_admin(request.user, service):
             messages.error(
                 request, "No tienes permiso para editar este elemento.")
-            return redirect('list_tcp')
+            return redirect('list_icmp')
 
         return view_func(request, pk, *args, **kwargs)
 
@@ -43,9 +43,10 @@ def verify_edit_allowed(view_func):
 def verify_deletion_allowed(view_func):
     @wraps(view_func)
     def wrapper(request, pk, *args, **kwargs):
-        service = get_object_or_404(tcp_s, pk=pk)
+        service = get_object_or_404(tfp_s, pk=pk)
 
         if service.processed_by not in ['Esperando', 'Detenido', 'Terminado']:
+            
             return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
 
         
@@ -55,20 +56,22 @@ def verify_deletion_allowed(view_func):
     return wrapper
 
 
-@login_required(login_url='login', redirect_field_name='login')
-def service_detail_tcp(request, pk):
-    service = tcp_s.objects.get(pk=pk)
-    statuses = ServiceStatus.objects.filter(service=service)
-    context = {
-        'service': service,
-        'statuses': statuses,
-    }
-    return render(request, 'config/detailtcp.html', context)
 
-@login_required(login_url='login', redirect_field_name='login')
-def create_service_tcp(request):
+@login_required(login_url='login', redirect_field_name ='login')
+def list_service_tfp(request):
+    if request.user.groups.filter(name = 'staff').exists():        
+
+        contexto ={'tfp_s': tfp_s.objects.all()}
+    else:
+        contexto = {'tfp_s': tfp_s.objects.filter(create_by = request.user)}
+
+    return render(request, 'config/listtfp.html', contexto)
+
+
+@login_required(login_url='login', redirect_field_name ='login')
+def create_service_tfp(request):
     if request.method == 'POST':
-        form = ServiceTCPForm(request.POST)
+        form = ServiceTFPForm(request.POST)
         if form.is_valid():
             service = form.save(commit=False)
             service.create_by = request.user
@@ -79,62 +82,15 @@ def create_service_tcp(request):
             mensaje = "Servicio guardado correctamente."
             messages.success(request, mensaje, extra_tags="create")
 
-            return HttpResponseRedirect(reverse('list_tcp'))
+            return HttpResponseRedirect(reverse('list_tfp'))
     else:
-        form = ServiceTCPForm()
-    return render(request, 'config/createtcp.html', {'form': form})
-
-
-
-@csrf_exempt
-def check_service_tcp(request, pk):
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        service = get_object_or_404(tcp_s, pk=pk)
-        if action == 'iniciar':
-            service.is_monitoring = True
-            service.save()
-            monitoreo_tcp_services.delay(pk, resume=True)
-            message = 'Monitoreo iniciado correctamente.'
-
-            # Enviar evento WebSocket con el estado actual del botón
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)('button_state_group', {
-                'type': 'send_button_state',
-                'text': json.dumps({
-                    'pk': pk,
-                    'buttonState': True
-                })
-            })
-        elif action == 'detener':
-            service.is_monitoring = False
-            service.save()
-            monitoreo_tcp_services.delay(pk, resume=False)
-            message = 'Monitoreo detenido correctamente.'
-
-            # Enviar evento WebSocket con el estado actual del botón
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)('button_state_group', {
-                'type': 'send_button_state',
-                'text': json.dumps({
-                    'pk': pk,
-                    'buttonState': False
-                })
-            })
-        else:
-            message = 'Acción no válida.'
-
-        return JsonResponse({'message': message})
-
-    return JsonResponse({'message': 'Método no permitido.'})
-
-
-
+        form = ServiceTFPForm()
+    return render(request, 'config/createtfp.html', {'form': form})
 
 
 @login_required(login_url='login', redirect_field_name ='login')
-def update_data_tcp(request):
-    datos = tcp_s.objects.all()
+def update_data_tfp(request):
+    datos = tfp_s.objects.all()
     update = []
     for datos in datos:
         status = datos.status
@@ -169,45 +125,64 @@ def update_data_tcp(request):
     return JsonResponse(update, safe=False)
 
 
-@login_required(login_url='login', redirect_field_name ='login')
-def list_service_tcp(request):
-    if request.user.groups.filter(name = 'staff').exists():        
-
-        contexto ={'tcp_s': tcp_s.objects.all()}
-    else:
-        contexto = {'tcp_s': tcp_s.objects.filter(create_by = request.user)}
-
-    return render(request, 'config/listtcp.html', contexto)
-
-
-
-@verify_edit_allowed
-@login_required(login_url='login', redirect_field_name ='login')
-def edit_tcp(request, pk):
-    service = get_object_or_404(tcp_s, pk=pk)
-
+@csrf_exempt
+@login_required(login_url='login', redirect_field_name='login')
+def check_service_tfp(request, pk):
     if request.method == 'POST':
-        form = ServiceTCPForm(request.POST, instance=service)
-        form.fields['number_probe'].required = False
+        action = request.POST.get('action')
+        service = get_object_or_404(tfp_s, pk=pk)
+        if action == 'iniciar':
+            service.is_monitoring = True
+            service.save()
+            monitoreo_tfp_services.delay(pk, resume=True)
+            message = 'Monitoreo iniciado correctamente.'
 
-        if form.is_valid():
-            form.save()
-            message = "Servicio editado correctamente."
-            messages.success(request, message, extra_tags="edit" )
-            return HttpResponseRedirect(reverse('list_tcp'))
-    else:
-        form = ServiceTCPForm(instance=service)
-        if service.processed_by == 'Detenido':
-            # Si el servicio está detenido, se excluye el campo 'number_probe' del formulario
-            form.fields['number_probe'].required = False
-            form.fields['number_probe'].widget.attrs['readonly'] = True
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': True
+                })
+            })
+        elif action == 'detener':
+            service.is_monitoring = False
+            service.save()
+            monitoreo_tfp_services.delay(pk, resume=False)
+            message = 'Monitoreo detenido correctamente.'
 
-    return render(request, 'config/edittcp.html', {'form': form})
+            # Enviar evento WebSocket con el estado actual del botón
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)('button_state_group', {
+                'type': 'send_button_state',
+                'text': json.dumps({
+                    'pk': pk,
+                    'buttonState': False
+                })
+            })
+        else:
+            message = 'Acción no válida.'
 
+        return JsonResponse({'message': message})
+
+    return JsonResponse({'message': 'Método no permitido.'})
+
+
+
+@login_required(login_url='login', redirect_field_name='login')
+def service_detail_tfp(request, pk):
+    service = tfp_s.objects.get(pk=pk)
+    statuses = ServiceStatus.objects.filter(service=service)
+    context = {
+        'service': service,
+        'statuses': statuses,
+    }
+    return render(request, 'config/detailtfp.html', context)
 
 @login_required(login_url='login', redirect_field_name ='login')
-def statustcpgraficpoint(request, pk):
-    service = tcp_s.objects.get(pk=pk)
+def statustfpgraficpoint(request, pk):
+    service = tfp_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
     data = []
     for status in statuses:
@@ -217,12 +192,47 @@ def statustcpgraficpoint(request, pk):
     return JsonResponse(data, safe=False)
 
 
+@login_required(login_url='login', redirect_field_name='login')
+@verify_edit_allowed
+def edit_tfp(request, pk):
+    service = get_object_or_404(tfp_s, pk=pk)
+    
+    if request.method == 'POST':
+        form = ServiceTFPForm(request.POST, instance=service)
+        form.fields['number_probe'].required = False
 
-@login_required(login_url='login', redirect_field_name ='login')
-def statustcprecord(request, pk):
-    service = tcp_s.objects.get(pk=pk)
+        if form.is_valid():
+            form.save()
+            message = "Servicio editado correctamente."
+            messages.success(request, message, extra_tags="edit")
+            return HttpResponseRedirect(reverse('list_https'))
+    else:
+        form = ServiceTFPForm(instance=service)
+        if service.processed_by == 'Detenido':
+            # Si el servicio está detenido, se excluye el campo 'number_probe' del formulario
+            form.fields['number_probe'].required = False
+            form.fields['number_probe'].widget.attrs['readonly'] = True
+   
+    return render(request, 'config/edittfp.html', {'form': form})
+
+
+@csrf_exempt
+@require_POST
+@login_required(login_url='login', redirect_field_name='login')
+@verify_deletion_allowed
+def delete_tfp(request, pk):
+    service = get_object_or_404(tfp_s, pk=pk)
+    
+    service.delete()
+            
+    return JsonResponse({'mensaje': 'El registro ha sido eliminado exitosamente.'})
+
+@login_required(login_url='login', redirect_field_name='login')
+def statustfprecord(request,pk):
+    service = tfp_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
-    dataa = []
+
+    dataa =  []
     for status in statuses:
         pk = status
         is_up = status.is_up
@@ -236,9 +246,10 @@ def statustcprecord(request, pk):
         else:
             status_html = ''
         timestamp = status.timestamp.strftime('%d-%m-%y')
-        cpu_processing_time = round(status.cpu_processing_time, 4)
+        cpu_processing_time = round(status.cpu_processing_time,4)
         error_message = status.error_message
-
+        
+        
         statusdate = {
             'is_up': status_html,
             'timestamp': timestamp,
@@ -247,19 +258,4 @@ def statustcprecord(request, pk):
         }
         dataa.append(statusdate)
     return JsonResponse(dataa, safe=False)
-
-
-@csrf_exempt
-@require_POST
-@login_required(login_url='login', redirect_field_name ='login')
-@verify_deletion_allowed
-def delete_tcp(request, pk):
-    service = get_object_or_404(tcp_s, pk=pk)
-
-    processed_by_value = service.processed_by
-    if processed_by_value not in ['Esperando', 'Detenido', 'Terminado']:
-        return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
-
-    service.delete()
-
-    return JsonResponse({'mensaje': 'El registro ha sido eliminado exitosamente.'})
+ 

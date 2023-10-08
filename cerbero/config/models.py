@@ -55,12 +55,11 @@ class ICMPService(Service):
 
 
 class TFProtocolService(Service):
-    dns = models.CharField( max_length=50)
-    ip_address =  models.GenericIPAddressField(null= True, blank=True)
+    address = models.CharField( max_length=100) 
     port = models.IntegerField( null= True, blank=True)
     hash = models.CharField(max_length=250)
     version = models.CharField( max_length=100)
-    public_key =  models.CharField(max_length=100)
+    public_key =  models.TextField(max_length=6000)
 
 
     
@@ -148,6 +147,19 @@ class ServiceStatusICMP(models.Model):
         ordering = ['-timestamp']
         
         
+
+class ServiceStatusTFProtocol(models.Model):
+    service = models.ForeignKey(TFProtocolService, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    cpu_processing_time = models.FloatField(null=True, blank = True)
+    is_up = models.CharField( max_length=50)
+    error_message = models.TextField(blank=True, null=True)
+
+
+    class Meta:
+        ordering = ['-timestamp']
+        
+        
         
 def user_directory_path_profile(instance, filename):
     profile_picture_name = 'users/{0}/profile.jpg'.format(instance.user.username)
@@ -159,9 +171,6 @@ def user_directory_path_profile(instance, filename):
     return profile_picture_name
 
 
-
-
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     picture = models.ImageField( upload_to=user_directory_path_profile)
@@ -171,15 +180,14 @@ class Profile(models.Model):
     def __str__(self):
         return self.user.username
 
-
-
-
+     
 @receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
-    if created:
-        if not instance.profile.picture:
-            select_random_image(instance.profile)
-
+    if created and not hasattr(instance, 'profile'):
+        profile = Profile.objects.create(user=instance)
+        select_random_image(profile)
+        
+        
 @receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     try:
