@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.urls import reverse
-from config.models import TFProtocolService as tfp_s, ServiceStatusTFProtocol as ServiceStatus
+from config.models import TFProtocolService as tfp_s, ServiceStatusTFProtocol as ServiceStatus, ServiceModificationTFP
 from .forms import ServiceTFPForm
 from config.tasks import monitoreo_tfp_services
 
@@ -202,7 +202,12 @@ def edit_tfp(request, pk):
         form.fields['number_probe'].required = False
 
         if form.is_valid():
-            form.save()
+            # Guardar el servicio editado
+            modified_service = form.save(commit=False)
+            modified_service.last_modified_by = request.user  # Establecer el usuario que realizó la modificación
+            modified_service.save()
+            # Crear una nueva entrada en el historial de modificaciones
+            ServiceModificationTFP.objects.create(service=modified_service, modified_by=request.user)           
             message = "Servicio editado correctamente."
             messages.success(request, message, extra_tags="edit")
             return HttpResponseRedirect(reverse('list_https'))

@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
-from config.models import ICMPService as icmp_s, ServiceStatusICMP as ServiceStatus
+from config.models import ICMPService as icmp_s, ServiceStatusICMP as ServiceStatus, ServiceModificationICMP
 from .forms import ServiceICMPForm
 from config.tasks import monitoreo_icmp_services
 
@@ -179,7 +179,12 @@ def edit_icmp(request, pk):
         form.fields['number_probe'].required = False
 
         if form.is_valid():
-            form.save()
+            # Guardar el servicio editado
+            modified_service = form.save(commit=False)
+            modified_service.last_modified_by = request.user  # Establecer el usuario que realizó la modificación
+            modified_service.save()
+             # Crear una nueva entrada en el historial de modificaciones
+            ServiceModificationICMP.objects.create(modified_by=request.user)            
             message = "Servicio editado correctamente."
             messages.success(request, message, extra_tags="edit")
             return HttpResponseRedirect(reverse('list_https'))

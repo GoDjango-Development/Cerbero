@@ -6,7 +6,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.urls import reverse
-from config.models import TCPService as tcp_s, ServiceStatusTCP as ServiceStatus
+from config.models import TCPService as tcp_s, ServiceStatusTCP as ServiceStatus, ServiceModificationTCP
 from .forms import ServiceTCPForm
 from config.tasks import monitoreo_tcp_services
 import json
@@ -191,7 +191,12 @@ def edit_tcp(request, pk):
         form.fields['number_probe'].required = False
 
         if form.is_valid():
-            form.save()
+            # Guardar el servicio editado
+            modified_service = form.save(commit=False)
+            modified_service.last_modified_by = request.user  # Establecer el usuario que realizó la modificación
+            modified_service.save()
+             # Crear una nueva entrada en el historial de modificaciones
+            ServiceModificationTCP.objects.create(service=modified_service, modified_by=request.user)            
             message = "Servicio editado correctamente."
             messages.success(request, message, extra_tags="edit" )
             return HttpResponseRedirect(reverse('list_tcp'))

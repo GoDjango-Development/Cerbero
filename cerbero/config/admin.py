@@ -18,6 +18,7 @@ admin.site.register(ServiceStatusTCP)
 admin.site.register(ServiceStatusHttp)
 admin.site.register(ServiceStatusDNS)
 
+admin.site.register(ServiceModificationHTTP)
 
 
 

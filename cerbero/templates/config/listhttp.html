@@ -42,6 +42,8 @@ Listado de servicios HTTP/S
     <th>Tiempo por pruebas</th>
     <th>Estado</th>
     <th>En Progreso</th>
+    <th>Creado por</th>
+    <th>Ultima Modificación</th>
     <th>Opciones</th>
 </tr>
 
@@ -76,6 +78,9 @@ Listado de servicios HTTP/S
     {% else %}
     {% endif %}
     </td>
+    <td scope="col" style="width: 15%;">{{ http.create_by }}</td>
+    <td scope="col" style="width: 15%;">{{ http.last_modified_by }}</td>
+
 
     <td scope="col" style="width: 10%;" id="options_{{ forloop.counter }}">
         <div class="row">

@@ -23,15 +23,15 @@ class Service(models.Model):
     current_iteration = models.IntegerField(blank=True, null=True)
     is_monitoring = models.BooleanField(default = False)
     create_by =  models.ForeignKey(User,  on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name='+')
 
-    
 
     class Meta:
         db_table = 'Service'
         abstract = True
         verbose_name = 'Service'
         verbose_name_plural = 'Services'
-
 
 class HTTPService(Service):
     port = models.IntegerField(default=1)
@@ -43,8 +43,7 @@ class HTTPService(Service):
         managed = True
         verbose_name = 'HTTPService'
         verbose_name_plural = 'HTTPServices'
-    
- 
+     
 class ICMPService(Service):
     dns_ip = models.CharField( max_length=50)
     class Meta:
@@ -52,7 +51,6 @@ class ICMPService(Service):
         managed = True
         verbose_name = 'ICMPService'
         verbose_name_plural = 'ICMPServices'
-
 
 class TFProtocolService(Service):
     address = models.CharField( max_length=100) 
@@ -70,7 +68,6 @@ class TFProtocolService(Service):
         verbose_name = 'TFProtocolService'
         verbose_name_plural = 'TFProtocolServices'
 
-
 class DNSService(Service):
     ip_address =  models.GenericIPAddressField(null=True)
     port = models.IntegerField(null=True, blank=True)
@@ -82,7 +79,6 @@ class DNSService(Service):
         managed = True
         verbose_name = 'DNSService'
         verbose_name_plural = 'DNSServices'
-
 
 class TCPService(Service):
     ip_address =  models.CharField(verbose_name='IP/DNS', max_length=50)
@@ -96,7 +92,6 @@ class TCPService(Service):
         verbose_name = 'TCPService'
         verbose_name_plural = 'TCPServices'  
 
-
 class ServiceStatusHttp(models.Model):
     service = models.ForeignKey(HTTPService, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -104,11 +99,11 @@ class ServiceStatusHttp(models.Model):
     is_up = models.CharField( max_length=50)
     response_status = models.CharField( max_length=50, null=True, blank = True)
     error_message = models.TextField(blank=True, null=True)
+    
 
 
     class Meta:
         ordering = ['-timestamp']
-
 
 class ServiceStatusTCP(models.Model):
     service = models.ForeignKey(TCPService, on_delete=models.CASCADE)
@@ -116,12 +111,11 @@ class ServiceStatusTCP(models.Model):
     cpu_processing_time = models.FloatField(null=True, blank = True)
     is_up = models.CharField( max_length=50)
     error_message = models.TextField(blank=True, null=True)
+   
 
 
     class Meta:
         ordering = ['-timestamp']
-
-
 
 class ServiceStatusDNS(models.Model):
     service = models.ForeignKey(DNSService, on_delete=models.CASCADE)
@@ -129,11 +123,11 @@ class ServiceStatusDNS(models.Model):
     cpu_processing_time = models.FloatField(null=True, blank = True)
     is_up = models.CharField( max_length=50)
     error_message = models.TextField(blank=True, null=True)
+    
 
 
     class Meta:
         ordering = ['-timestamp']
-
 
 class ServiceStatusICMP(models.Model):
     service = models.ForeignKey(ICMPService, on_delete=models.CASCADE)
@@ -141,26 +135,74 @@ class ServiceStatusICMP(models.Model):
     cpu_processing_time = models.FloatField(null=True, blank = True)
     is_up = models.CharField( max_length=50)
     error_message = models.TextField(blank=True, null=True)
+    
 
 
     class Meta:
         ordering = ['-timestamp']
         
-        
-
 class ServiceStatusTFProtocol(models.Model):
     service = models.ForeignKey(TFProtocolService, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     cpu_processing_time = models.FloatField(null=True, blank = True)
     is_up = models.CharField( max_length=50)
     error_message = models.TextField(blank=True, null=True)
-
+    
 
     class Meta:
         ordering = ['-timestamp']
         
-        
-        
+class ServiceModificationHTTP(models.Model):
+    service = models.ForeignKey(HTTPService, on_delete=models.CASCADE)
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    modified_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ServiceModificationHTTP'
+        verbose_name = 'Service Modification HTTP'
+        verbose_name_plural = 'Service Modifications HTTP'      
+
+class ServiceModificationTCP(models.Model):
+    service = models.ForeignKey(TCPService, on_delete=models.CASCADE)
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    modified_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ServiceModificationTCP'
+        verbose_name = 'Service Modification TCP'
+        verbose_name_plural = 'Service Modifications TCP' 
+
+class ServiceModificationTFP(models.Model):
+    service = models.ForeignKey(TFProtocolService, on_delete=models.CASCADE)
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    modified_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ServiceModificationTFP'
+        verbose_name = 'Service Modification TFProtocol'
+        verbose_name_plural = 'Service Modifications TFProtocol' 
+
+class ServiceModificationICMP(models.Model):
+    service = models.ForeignKey(ICMPService, on_delete=models.CASCADE)
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    modified_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ServiceModificationICMP'
+        verbose_name = 'Service Modification ICMP'
+        verbose_name_plural = 'Service Modifications ICMP' 
+
+class ServiceModificationDNS(models.Model):
+    service = models.ForeignKey(DNSService, on_delete=models.CASCADE)
+    modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
+    modified_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ServiceModificationDNS'
+        verbose_name = 'Service Modification DNS'
+        verbose_name_plural = 'Service Modifications DNS' 
+  
+       
 def user_directory_path_profile(instance, filename):
     profile_picture_name = 'users/{0}/profile.jpg'.format(instance.user.username)
     full_path = os.path.join(settings.MEDIA_ROOT, profile_picture_name)

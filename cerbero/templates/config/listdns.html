@@ -43,6 +43,8 @@ Listado de servicios DNS
     <th>Tiempo por pruebas</th>
     <th>Estado</th>
     <th>En Progreso</th>
+    <th>Creado por</th>
+    <th>Ultima Modificación</th>
     <th>Opciones</th>
 </tr>
 
@@ -77,6 +79,8 @@ Listado de servicios DNS
     {% else %}
     {% endif %}
     </td>
+    <td scope="col" style="width: 15%;">{{ dns.create_by }}</td>
+    <td scope="col" style="width: 15%;">{{ dns.last_modified_by }}</td>
 
     <td scope="col" style="width: 10%;">
         <div class="row">

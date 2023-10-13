@@ -8,7 +8,7 @@ from django.views.decorators.http import require_POST
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.urls import reverse
-from config.models import DNSService as dns_s,  ServiceStatusDNS as ServiceStatus
+from config.models import DNSService as dns_s,  ServiceStatusDNS as ServiceStatus, ServiceModificationDNS
 from .forms import ServiceDNSForm
 from django.contrib.auth.decorators import login_required, user_passes_test
 from config.tasks import monitoreo_dns_services
@@ -183,7 +183,12 @@ def edit_dns(request, pk):
         form.fields['number_probe'].required = False
 
         if form.is_valid():
-            form.save()
+            # Guardar el servicio editado
+            modified_service = form.save(commit=False)
+            modified_service.last_modified_by = request.user  # Establecer el usuario que realizó la modificación
+            modified_service.save()
+             # Crear una nueva entrada en el historial de modificaciones
+            ServiceModificationDNS.objects.create(service=modified_service, modified_by=request.user)
             message = "Servicio editado correctamente. "
             messages.success(request, message, extra_tags="edit")
             return HttpResponseRedirect(reverse('list_dns'))

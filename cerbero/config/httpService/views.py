@@ -11,7 +11,7 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 from django.urls import reverse
-from config.models import HTTPService as http_s, ServiceStatusHttp as ServiceStatus
+from config.models import HTTPService as http_s, ServiceStatusHttp as ServiceStatus, ServiceModificationHTTP
 from .forms import ServiceHTTPForm
 from config.tasks import monitoreo_http_services
 import json
@@ -239,7 +239,12 @@ def edit_https(request, pk):
         if service.processed_by == 'Detenido' and not request.POST.get('number_probe'):
             form.fields['number_probe'].required = False
         if form.is_valid():
-            form.save()
+            # Guardar el servicio editado
+            modified_service = form.save(commit=False)
+            modified_service.last_modified_by = request.user  # Establecer el usuario que realizó la modificación
+            modified_service.save()
+            # Crear una nueva entrada en el historial de modificaciones
+            ServiceModificationHTTP.objects.create(service=modified_service, modified_by=request.user)           
             message = "Servicio editado correctamente."
             messages.success(request, message, extra_tags="edit")
             return HttpResponseRedirect(reverse('list_https'))
