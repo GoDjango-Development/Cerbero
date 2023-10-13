@@ -1,93 +1,126 @@
-{% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
-    <meta charset="UTF-8">
-    <title>Prueba completada</title>
+    <meta charset="utf-8" />
+    <title>Creando una tarjeta en horizontal</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f2f2f2;
-            margin: 0;
-            padding: 0;
-            line-height: 1.5;
-        }
-        
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
+        * {
             box-sizing: border-box;
-            background-color: #fff;
+            font-family: sans-serif;
         }
-        
-        .header {
+
+        body {
+            align-items: center;
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+        }
+
+        .card h2 {
+            font-size: 2rem;
+            font-weight: 500;
+            line-height: 1.2;
+            margin-bottom: 0.5rem;
+            margin-top: 0;
+        }
+
+        .card {
+            border-radius: 20px;
+            box-shadow: 4px 4px 4px 3px #c9c2c2;
+            display: flex;
+            overflow: hidden;
+            width: 800px;
+        }
+
+        .card .ladoIzq {
+            color: white;
+            padding: 48px;
+            position: relative;
+            width: 100%;
+        }
+
+        .card .ladoIzq::after {
+            background: #ff7043d1;
+            border-radius: 24px;
+            box-shadow: 3px -2px 13px 0px #525252;
+            content: '';
+            height: 100%;
+            left: 0;
+            position: absolute;
+            top: 0;
+            transform: skew(160deg, 0);
+            transform-origin: top left;
+            width: 100%;
+            z-index: -1;
+        }
+
+        .card .ladoDer {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding-right: 12px;
+            width: 100%;
+        }
+
+        .card .cuerpo {
+            line-height: 150%;
             text-align: center;
-            margin-bottom: 20px;
         }
+
+        .card .centrahrz {
+            text-align: center;
+        }
+
+        .card .btn {
+            background: white;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 18px;
+            padding: 14px;
+        }
+
+        .card a.btn {
+            text-decoration: none;
+        }
+
         
+        .card a.btn:hover {
+            opacity: 0.8;
+        }
+
         .logo {
-            max-width: 200px;
+            display: block;
+            max-width: 600px;
+            width: 180px;
             height: auto;
-        }
-        
-        .report {
-            margin-bottom: 20px;
-        }
-        
-        .report-title {
-            font-size: 20px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .report-item {
-            margin-bottom: 5px;
-        }
-        
-        .report-item span {
-            font-weight: bold;
-        }
-        
-        @media (max-width: 600px) {
-            .container {
-                max-width: 100% !important;
-                padding: 10px !important;
-            }
-            
-            .logo {
-                max-width: 100% !important;
-                height: auto !important;
-            }
+            margin-left: auto;
+            margin-right: auto;
+            margin-bottom: 30px;
         }
     </style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <img src="{% static 'img/logo.png' %}" alt="Logo" class="logo" />
+    <div class="card">
+        <div class="ladoIzq">
+            <img src="cid:imagen" alt="Logo" class="logo" />
         </div>
-        
-        <div class="report">
-            <h2 class="report-title">Informe de prueba</h2>
-            
-            <div class="report-item">
-                <span>Último estado:</span> {{ service.status }}
-            </div>
-            
-            <div class="report-item">
-                <span>Cantidad de pruebas realizadas:</span> {{ cant_test }}
-            </div>
-            
-            <div class="report-item">
-                <span>Resultados:</span>
-                <ul>
-                    <li>Up: {{ up_count }}</li>
-                    <li>Down: {{ down_count }}</li>
-                    <li>Error: {{ error_count }}</li>
-                </ul>
+        <div class="ladoDer">
+            <h2 class="titulo">Prueba completada</h2>
+            <div class="cuerpo">
+                <p>La prueba: {{service_name}} ha sido completada exitosamente.</p>
+                <p>Cantidad de pruebas realizadas: {{cant_test}}</p>
+
+                <p>Resultado por pruebas:</p>
+                <p>Pruebas Up: {{num_up}}</p>
+                <p>Pruebas Down: {{num_down}}</p>
+                <p>Pruebas Error: {{num_up}}</p>
+                <p>Ultimo resultad: {{last_result}}</p>
             </div>
         </div>
     </div>
 </body>
+
 </html>

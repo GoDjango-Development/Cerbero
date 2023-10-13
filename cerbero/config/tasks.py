@@ -1,13 +1,16 @@
+import os
 import time
 import httplib2
 import socket
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail, EmailMultiAlternatives
+from email.mime.image import MIMEImage
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.contrib.auth.models import User, Group
 from cerbero.settings import EMAIL_HOST_USER
+from django.conf import settings
 from celery import shared_task
 from icmplib import ping
 from tfprotocol_client.tfprotocol import TfProtocol
@@ -39,6 +42,17 @@ def send_test_completion_email(service):
     created_by_user = service.create_by
     service_name = service.name
     cant_test = service.number_probe
+      # Obtener los resultados de las pruebas
+    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
+    num_up = test_results.filter(is_up='up').count()
+    print(f'num_up {num_up}')
+    num_down = test_results.filter(is_up='down').exclude(response_status=None).count()
+    print(f'num_down {num_down}')
+    num_error = test_results.filter(is_up='error', response_status=None).count()
+    print(f'num_error {num_error}')
+
+    last_result = test_results.first().is_up if test_results.exists() else None
+    print(f'last_result {last_result}')
      
     # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
@@ -50,7 +64,23 @@ def send_test_completion_email(service):
     html_content = render_to_string('email/test_completion.html', {
         'service_name': service_name,
         'cant_test': cant_test,
+        'num_up': num_up,
+        'num_down': num_down,
+        'num_error': num_error,
+        'last_result': last_result,
     })
+
+    # Obtener la ruta de la imagen
+    image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
+
+    
+    
+    # Leer el contenido de la imagen
+    with open(image_path, 'rb') as f:
+        image_data = f.read()
+
+    # Obtener el nombre de archivo de la imagen
+    image_filename = 'logo.png'
 
 
      # Crear una instancia de EmailMultiAlternatives
@@ -61,6 +91,12 @@ def send_test_completion_email(service):
         to=[created_by_user.email],
     )
     msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    
+    # Crear una instancia de MIMEImage con el contenido de la imagen
+    image = MIMEImage(image_data)
+    image.add_header('Content-ID', '<imagen>')
+    image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    msg.attach(image)
 
     # Enviar correo electrónico al usuario creador
     msg.send()
@@ -74,6 +110,7 @@ def send_test_completion_email(service):
             to=[user.email],
         )
         msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+        msg.attach(image)
         msg.send()
     
     
@@ -130,24 +167,18 @@ def test_https(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        print(f'valor del current_iteration antes del for {current_iteration}')
         if service.processed_by != 'Terminado':
             for i in range(current_iteration, num_of_tests):
-                print(f'iteracion {i} ')
 
                 # Comprobar si se ha activado la bandera de detención
                 if stop_flag.is_set():
                     with test_status:
                         service.in_process = False  # Establecer el estado in_process en False
-                        print(
-                            f'dentro de la preugunta de la parada {service.in_process} el de nombre {service.name}')
-                        service.processed_by = 'Detenido'
-
+                        
                         service.current_iteration = current_iteration
                         print(f'se detuvo en { service.current_iteration}')
                         service.save()
                         break
-                print(f'continuo en current_iteration {current_iteration}')
 
                 try:
                     start_time = time.time()
@@ -159,13 +190,11 @@ def test_https(service, stop_flag):
                     if response.status == 301:
                         # Tenemos redirección
                         location = response.get('location')
-                        print(f"Redireccionando a {location}")
 
                         # Seguir redirección
                         redirect_response, _ = http.request(location)
 
                         if redirect_response.status == 200:
-                            print("Redirección completada exitosamente")
                             result = "up"
 
                         else:
@@ -185,11 +214,9 @@ def test_https(service, stop_flag):
 
                     end_time = time.time()
                     cpu_processing_times = end_time - start_time
-                    print(f"costo conexión: {cpu_processing_times}")
 
                 except Exception as e:
                     error_messages = str(e)
-                    print(f"Error de conexión: {str(e)}")
                     cpu_processing_times = 0
                     result = "error"
                     test_results.append(result)
@@ -211,18 +238,16 @@ def test_https(service, stop_flag):
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
 
-                print(
-                    f'se esta guardando current_iteration{current_iteration}')
+               
                 service.current_iteration = current_iteration
-                print(
-                    f'se esta guardando service.current_iteratio{service.current_iteration} y proceso {service.processed_by}')
-
+                
                 service.save()
 
                 time.sleep(test_duration)
                 if current_iteration == num_of_tests:
                     service.processed_by = 'Terminado'
                     service.save()
+                    #Envio de mensaje por correo sobre los valores que dieron la prueba
                     send_test_completion_email(service)
 
     finally:
@@ -352,18 +377,16 @@ def test_tcp(service, stop_flag):
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
 
-                print(
-                    f'se esta guardando current_iteration{current_iteration}')
-                service.current_iteration = current_iteration
-                print(
-                    f'se esta guardando service.current_iteratio{service.current_iteration} y proceso {service.processed_by}')
-
+              
                 service.save()
 
                 time.sleep(test_duration)
             if current_iteration == num_of_tests:
                 service.processed_by = 'Terminado'
                 service.save()
+                
+                #Envio de mensaje por correo sobre los valores que dieron la prueba
+                send_test_completion_email(service)
 
     finally:
         with test_status:
@@ -435,21 +458,16 @@ def test_dns(service, stop_flag):
             for i in range(current_iteration, num_of_tests):
                 service.processed_by = current_thread().name
                 service.save()
-                print(f'iteracion {i} ')
 
                 # Comprobar si se ha activado la bandera de detención
                 if stop_flag.is_set():
                     with test_status:
                         service.in_process = False  # Establecer el estado in_process en False
-                        print(
-                            f'dentro de la preugunta de la parada {service.in_process} el de nombre {service.name}')
-                        service.processed_by = 'Detenido'
-
+                        
                         service.current_iteration = current_iteration
-                        print(f'se detuvo en { service.current_iteration}')
+                        
                         service.save()
                         break
-                print(f'continuo en current_iteration {current_iteration}')
 
                 try:
                     start_time = time.time()
@@ -492,18 +510,16 @@ def test_dns(service, stop_flag):
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
 
-                print(
-                    f'se esta guardando current_iteration{current_iteration}')
-                service.current_iteration = current_iteration
-                print(
-                    f'se esta guardando service.current_iteratio{service.current_iteration} y proceso {service.processed_by}')
-
+               
                 service.save()
 
                 time.sleep(test_duration)
             if current_iteration == num_of_tests:
                 service.processed_by = 'Terminado'
                 service.save()
+                
+                #Envio de mensaje por correo sobre los valores que dieron la prueba
+                send_test_completion_email(service)
 
     finally:
         with test_status:
@@ -570,26 +586,20 @@ def test_icmp(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        print(f'valor del current_iteration antes del for {current_iteration}')
         if service.processed_by != 'Terminado':
             for i in range(current_iteration, num_of_tests):
                 service.processed_by = current_thread().name
                 service.save()
-                print(f'iteracion {i} ')
 
                 # Comprobar si se ha activado la bandera de detención
                 if stop_flag.is_set():
                     with test_status:
                         service.in_process = False  # Establecer el estado in_process en False
-                        print(
-                            f'dentro de la preugunta de la parada {service.in_process} el de nombre {service.name}')
                         service.processed_by = 'Detenido'
 
                         service.current_iteration = current_iteration
-                        print(f'se detuvo en { service.current_iteration}')
                         service.save()
                         break
-                print(f'continuo en current_iteration {current_iteration}')
 
                 try:
                     start_time = time.time()
@@ -603,7 +613,6 @@ def test_icmp(service, stop_flag):
 
                     end_time = time.time()
                     cpu_processing_times = end_time - start_time
-                    print(f"costo conexión: {cpu_processing_times}")
 
                 except Exception as e:
                     print(f"Error de conexión: {str(e)}")
@@ -631,18 +640,15 @@ def test_icmp(service, stop_flag):
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
 
-                print(
-                    f'se esta guardando current_iteration{current_iteration}')
-                service.current_iteration = current_iteration
-                print(
-                    f'se esta guardando service.current_iteratio{service.current_iteration} y proceso {service.processed_by}')
-
                 service.save()
 
                 time.sleep(test_duration)
             if current_iteration == num_of_tests:
                 service.processed_by = 'Terminado'
                 service.save()
+                
+                #Envio de mensaje por correo sobre los valores que dieron la prueba
+                send_test_completion_email(service)
 
     finally:
         with test_status:
@@ -685,7 +691,7 @@ def monitoreo_tfp_services(pk, resume=False):
                 pass
         with test_status:
             if service.processed_by == 'Terminado':
-                print("prueba terminada no se puede volver a ejecutar")
+                pass
 
         if pk not in current_threads_tfp or not current_threads_tfp[pk].is_alive():
             # Si no hay un hilo en ejecución para el servicio actual
@@ -725,15 +731,12 @@ def test_tfp(service, stop_flag):
                 if stop_flag.is_set():
                     with test_status:
                         service.in_process = False  # Establecer el estado in_process en False
-                        print(
-                            f'dentro de la preugunta de la parada {service.in_process} el de nombre {service.name}')
                         service.processed_by = 'Detenido'
 
                         service.current_iteration = current_iteration
                         print(f'se detuvo en { service.current_iteration}')
                         service.save()
                         break
-                print(f'continuo en current_iteration {current_iteration}')
 
                 try:
                     start_time = time.time()
@@ -745,12 +748,9 @@ def test_tfp(service, stop_flag):
                     end_time = time.time()
                     cpu_processing_times = end_time - start_time
                     if proto.connect():
-                        print("Conexión establecida")
                         result = 'up'
                     else:
-                        print("No se pudo establecer la conexión")
                         result = "down"            
-                    print(f"Tiempo de procesamiento: {cpu_processing_times:.2f} segundos")
                     proto.disconnect() 
                 except Exception as e:
                     print(f"Error de conexión: {str(e)}")
@@ -777,19 +777,15 @@ def test_tfp(service, stop_flag):
                 )
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
-
-                print(
-                    f'se esta guardando current_iteration{current_iteration}')
-                service.current_iteration = current_iteration
-                print(
-                    f'se esta guardando service.current_iteratio{service.current_iteration} y proceso {service.processed_by}')
-
                 service.save()
 
                 time.sleep(test_duration)
             if current_iteration == num_of_tests:
                 service.processed_by = 'Terminado'
                 service.save()
+                
+                #Envio de mensaje por correo sobre los valores que dieron la prueba
+                send_test_completion_email(service)
 
     finally:
         with test_status:
