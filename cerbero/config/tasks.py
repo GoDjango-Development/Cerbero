@@ -455,9 +455,8 @@ def test_https(service, stop_flag):
                 if stop_flag.is_set():
                     with test_status:
                         service.in_process = False  # Establecer el estado in_process en False
-                        
+                        service.processed_by = 'Detenido'
                         service.current_iteration = current_iteration
-                        print(f'se detuvo en { service.current_iteration}')
                         service.save()
                         break
 
