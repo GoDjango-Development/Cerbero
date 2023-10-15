@@ -2,240 +2,285 @@
 {% load widget_tweaks %}
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
+    <title>Inicio de sesión | Cerbero</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="{% static 'lib/fontawesome-free/css/all.min.css' %}" />
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{% static 'lib/adminlte-3.1.0/css/adminlte.min.css' %}" />
+    <!-- jQuery -->
+    <script src="{% static 'lib/jquery/jquery.min.js' %}"></script>
+    <!-- Bootstrap 4 -->
+    <script src="{% static 'lib/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- Sweetalert2 -->
+    <script src="{% static 'lib/sweetalert2-9.10.0/sweetalert2.all.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
+    <script src="{% static 'lib/toastr/toastr.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}" />
+    <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
+    <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+    <style>
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .login-box {
+        max-width: 1000px;
+        width: 500px;
+        border-radius: 5px;
+        background-color: #fff;
+        padding: 20px;
+        height: 600px;
+        /* Ajusta el valor de margen superior según tus necesidades */
+      }
+      
+      .login-logo img {
+        max-width: 600px;
+        width: 180px;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 30px;
+      }
+    </style>
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta http-equiv="x-ua-compatible" content="ie=edge" />
-  <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
-  <title>Inicio de sesión | Cerbero</title>
-  <!-- Font Awesome Icons -->
-  <link rel="stylesheet" href="{% static 'lib/fontawesome-free/css/all.min.css' %}" />
-  <!-- Theme style -->
-  <link rel="stylesheet" href="{% static 'lib/adminlte-3.1.0/css/adminlte.min.css' %}" />
-  <!-- jQuery -->
-  <script src="{% static 'lib/jquery/jquery.min.js' %}"></script>
-  <!-- Bootstrap 4 -->
-  <script src="{% static 'lib/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-  <!-- Sweetalert2 -->
-  <script src="{% static 'lib/sweetalert2-9.10.0/sweetalert2.all.min.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
-  <script src="{% static 'lib/toastr/toastr.min.js' %}"></script>
-  <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}" />
-  <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
-  <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
-
-  <style>
-    .login-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .login-box {
-      max-width: 1000px;
-      width: 500px;
-      border-radius: 5px;
-      background-color: #fff;
-      padding: 20px;
-      height: 600px;
-      /* Ajusta el valor de margen superior según tus necesidades */
-    }
-
-    .login-logo img {
-      max-width: 600px;
-      width: 180px;
-      height: auto;
-      margin-left: auto;
-      margin-right: auto;
-      margin-bottom: 30px;
-    }
-  </style>
-
-  <script>
-
-    $(document).ready(function () {
-
-
-      $('#registroForm').submit(function (e) {
-        e.preventDefault(); // Evitar la acción por defecto del formulario
-
-        // Obtener los valores del formulario
-        var username = $('#usernamer').val();
-        console.log('este' + username)
-        var password1 = $('#password1').val();
-        var password2 = $('#password2').val();
-
-
-          // Validar los campos del formulario
-          if (username === '' && password1 === '' && password2 === '') {
-            toastr.error('Por favor, completa todos los campos.');
-            return;
-          }
-  
-          if (password1 !== password2) {
-            toastr.error('Las contraseñas no coinciden.');
-            return;
-          }
-
-        // Obtener el token CSRF
-        var csrftoken = getCookie('csrftoken');
-
-        // Realizar la solicitud AJAX para registrar el usuario
-        $.ajax({
-          type: 'POST',
-          url: '{% url "register" %}',
-          data: {
-            'username': username,
-            'password1': password1,
-            'password2': password2,
-            'csrfmiddlewaretoken': csrftoken
-          },
-          success: function (response) {
-            if (response.success) {
-              // Registro exitoso
-              $('#registroModal').modal('hide'); // Cerrar el modal de registro
-              // Obtener los valores del formulario
-              $('#usernamer').val('');
-              $('#password1').val('');
-              $('#password2').val('');
-              toastr.success('Usuario creado con exito')
-
+    <script>
+      $(document).ready(function () {
+        $('#registroForm').validate({
+            errorClass: 'text-danger',
+            errorElement: 'span',
+            rules: {
+                usernamer: 'required',
+                password1: {
+                    required: true,
+                    minlength: 8
+                },
+                password2: {
+                    required: true,
+                    equalTo: '#password1'
+                },
+                email: {
+                    required: true,
+                    email: true
+                },
+                first_name: {
+                    required: true,
+                    pattern: /^[A-Z][a-z]+(?: [A-Z][a-z]+)*$/
+                },
+                last_name: {
+                    required: true,
+                    pattern: /^[A-Z][a-z]+(?: [A-Z][a-z]+)*$/
+                },
+            },
+            messages: {
+                usernamer: 'Por favor, ingresa un nombre de usuario',
+                password1: {
+                    required: 'Por favor, ingresa una contraseña',
+                    minlength: 'La contraseña debe tener más de 8 caracteres'
+                },
+                password2: {
+                    required: 'Por favor, confirma tu contraseña',
+                    equalTo: 'Las contraseñas no coinciden'
+                },
+                email: {
+                    required: 'Por favor, ingresa un correo electrónico',
+                    email: 'Por favor, ingresa un correo electrónico válido'
+                },
+                first_name: {
+                    required: 'Por favor, ingresa tus nombres',
+                    pattern: 'El nombre debe comenzar con letras mayúscula seguida de minúscula'
+                },
+                last_name: {
+                    required: 'Por favor, ingresa tus apellidos',
+                    pattern: 'El apellido debe comenzar con letras mayúscula seguida de minúscula'
+                },
+            },
+            highlight: function (element) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element) {
+                $(element).removeClass('is-invalid');
+            },
+            errorPlacement: function (error, element) {
+                error.insertAfter(element);
+            },
+            submitHandler: function (form) {
+                var csrftoken = getCookie('csrftoken');
+                $.ajax({
+                    type: 'POST',
+                    url: '{% url "register" %}',
+                    data: {
+                        username: $('#usernamer').val(),
+                        password1: $('#password1').val(),
+                        password2: $('#password2').val(),
+                        email: $('#email').val(),
+                        first_name: $('#first_name').val(),
+                        last_name: $('#last_name').val(),
+                        csrfmiddlewaretoken: csrftoken
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            $('#registroModal').modal('hide');
+                            $('#usernamer').val('');
+                            $('#password1').val('');
+                            $('#password2').val('');
+                            $('#email').val('');
+                            $('#first_name').val('');
+                            $('#last_name').val('');
+                            toastr.success('Usuario creado con éxito');
+                        }
+                    },
+                    error: function (xhr, status, response) {
+                        toastr.error('Error en el registro de usuario. Por favor, intenta nuevamente.');
+                        console.log(xhr.responseText);
+                        console.log(response);
+                        if (response.errors) {
+                            var errorMessage = '';
+                            for (var field in response.errors) {
+                                errorMessage += '<li>' + response.errors[field].join(', ') + '</li>';
+                            }
+                            toastr.error('<ul>' + errorMessage + '</ul>');
+                        }
+                    }
+                });
             }
-          },
-          error: function (xhr, status, response) {
-            // Error en la solicitud AJAX
-            toastr.error('Error en el registro de usuario. Por favor, intenta nuevamente.')
-            console.log(xhr.responseText);
-            console.log(response)
-            if (response.errors) {
-              var errorMessage = '';
-              for (var field in response.errors) {
-                errorMessage += '<li>' + response.errors[field].join(', ') + '</li>';
-              }
-              toastr.error('<ul>' + errorMessage + '</ul>');
-            }
-          }
-
-
         });
-
-
-      });
     });
-
-
-    function getCookie(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-          var cookie = cookies[i].trim();
-          if (cookie.substring(0, name.length + 1) === (name + '=')) {
-            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-            break;
+      
+      function getCookie(name) {
+        var cookieValue = null
+        if (document.cookie && document.cookie !== '') {
+          var cookies = document.cookie.split(';')
+          for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim()
+            if (cookie.substring(0, name.length + 1) === name + '=') {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
+              break
+            }
           }
         }
+        return cookieValue
       }
-      return cookieValue;
+    </script>
+  </head>
 
-    }
-
-  </script>
-</head>
-
-<body class="hold-transition login-page">
-  <div class="login-container">
-    <div class="login-box">
-      <div class="login-logo">
-        <img src="{% static 'img/logo.png' %}" alt="Logo" />
-      </div>
-      <div class="card">
-        <div class="card-body login-card-body">
-          <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-              <label for="username"><i class="fas fa-user"></i> Usuario:</label>
-              <input type="text" name="username" id="username" class="form-control" required placeholder="Usuario"
-                autocomplete="off" />
-            </div>
-            <div class="form-group">
-              <label for="password"><i class="fas fa-lock"></i> Contraseña:</label>
-              <input type="password" name="password" id="password" class="form-control" required
-                placeholder="Contraseña" autocomplete="off" />
-            </div>
-            <div class="form-group">
-              <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
-              {% if not user_registered %}
-              <div class="text-center mt-3">
-                <p>¿No tienes una cuenta?</p>
-                <a href="#" class="btn btn-secondary btn-block" data-toggle="modal"
-                  data-target="#registroModal">Registrarse</a>
+  <body class="hold-transition login-page">
+    <div class="login-container">
+      <div class="login-box">
+        <div class="login-logo">
+          <img src="{% static 'img/logo.png' %}" alt="Logo" />
+        </div>
+        <div class="card">
+          <div class="card-body login-card-body">
+            <form method="post">
+              {% csrf_token %}
+              <div class="form-group">
+                <label for="username"><i class="fas fa-user"></i> Usuario:</label>
+                <input type="text" name="username" id="username" class="form-control" required placeholder="Usuario" autocomplete="off" />
               </div>
-              {% endif %}
-            </div>
-          </form>
+              <div class="form-group">
+                <label for="password"><i class="fas fa-lock"></i> Contraseña:</label>
+                <input type="password" name="password" id="password" class="form-control" required placeholder="Contraseña" autocomplete="off" />
+              </div>
+              <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
+                {% if not user_registered %}
+                  <div class="text-center mt-3">
+                    <p>¿No tienes una cuenta?</p>
+                    <a href="#" class="btn btn-secondary btn-block" data-toggle="modal" data-target="#registroModal">Registrarse</a>
+                  </div>
+                {% endif %}
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Modal de Registro -->
-  <div class="modal fade" id="registroModal" tabindex="-1" role="dialog" aria-labelledby="registroModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="registroModalLabel">Registro de Usuario</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-              aria-hidden="true">&times;</span></button>
-        </div>
-        <div class="modal-body">
-          <!-- Formulario de Registro -->
-          <form id="registroForm" method="post">
-            {% csrf_token %}
-            
-            <div class="form-group">
-              <label for="usernamer">Nombre de usuario:</label>
-              <input type="text" class="form-control" id="usernamer" name="usernamer" required />
-            </div>
-            <div class="form-group">
-              <label for="password1">Contraseña:</label>
-              <input type="password" class="form-control" id="password1" name="password1" required />
-            </div>
-            <div class="form-group">
-              <label for="password2">Confirmar Contraseña:</label>
-              <input type="password" class="form-control" id="password2" name="password2" required />
-            </div>
-            <button type="submit" class="btn btn-primary">Registrarse</button>
-          </form>
+    <!-- Modal de Registro -->
+    <div class="modal fade" id="registroModal" tabindex="-1" role="dialog" aria-labelledby="registroModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="registroModalLabel">Registro de Usuario</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          </div>
+          <div class="modal-body">
+            <!-- Formulario de Registro -->
+            <form id="registroForm" method="post">
+              {% csrf_token %}
+
+              <div class="form-group row">
+                <label for="usernamer" class="col-sm-6 col-form-label">Nombre de usuario:</label>
+                <div class="col-sm-6">
+                  <input type="text" class="form-control" id="usernamer" name="usernamer" required />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="password1" class="col-sm-6 col-form-label">Contraseña:</label>
+                <div class="col-sm-6">
+                  <input type="password" class="form-control" id="password1" name="password1" required />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="password2" class="col-sm-6 col-form-label">Confirmar Contraseña:</label>
+                <div class="col-sm-6">
+                  <input type="password" class="form-control" id="password2" name="password2" required />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="email" class="col-sm-6 col-form-label">Correo electrónico:</label>
+                <div class="col-sm-6">
+                  <input type="email" class="form-control" id="email" name="email" required />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="first_name" class="col-sm-6 col-form-label">Nombres:</label>
+                <div class="col-sm-6">
+                  <input type="text" class="form-control" id="first_name" name="first_name" required />
+                </div>
+              </div>
+              <div class="form-group row">
+                <label for="last_name" class="col-sm-6 col-form-label">Apellidos:</label>
+                <div class="col-sm-6">
+                  <input type="text" class="form-control" id="last_name" name="last_name" required />
+                </div>
+              </div>
+              <button type="submit" class="btn btn-primary">Registrarse</button>
+            </form>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Dentro de tu archivo HTML -->
-  {% if messages %}
-  <script>
+    <!-- Dentro de tu archivo HTML -->
+    {% if messages %}
+      <script>
     $(document).ready(function () {
       {% for message in messages %}
-      {% if message.tags %}
-      {% if 'success' in message.tags %}
-      toastr.success("{{ message }}", "Éxito");
-      {% elif 'warning' in message.tags %}
-      toastr.warning("{{ message }}", "Advertencia");
-      {% elif 'error' in message.tags %}
-      toastr.error("{{ message }}", "Error");
-      {% else %}
-      toastr.info("{{ message }}");
-      {% endif %}
-      {% else %}
-      toastr.info("{{ message }}");
-      {% endif %}
+        {% if message.tags %}
+          {% if 'success' in message.tags %}
+            toastr.success("{{ message }}", "Éxito");
+          {% elif 'warning' in message.tags %}
+            toastr.warning("{{ message }}", "Advertencia");
+          {% elif 'error' in message.tags %}
+            toastr.error("{{ message }}", "Error");
+          {% else %}
+            toastr.info("{{ message }}");
+          {% endif %}
+        {% else %}
+          toastr.info("{{ message }}");
+        {% endif %}
       {% endfor %}
     });
   </script>
-  {% endif %}
-</body>
-
+    {% endif %}
+  </body>
 </html>

@@ -8,7 +8,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import Group, User
 from config.models import Profile
-from django.contrib.auth.forms import UserCreationForm
+from .forms import CustomUserCreationForm
 from django.views.generic import TemplateView, View
 from .forms import EditProfileForm
 from django.http import JsonResponse
@@ -30,8 +30,6 @@ def admin(request):
 def user_list(request):
     users = User.objects.select_related('profile').all()
     return render(request,'config/userlist.html', {'users':users})
-
-
 
 @never_cache
 def login_view(request):
@@ -85,21 +83,32 @@ def logout_view(request):
 
 def register_user(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             User = get_user_model()
             owner_group = Group.objects.get(name='owner')
-            
+
+            email = form.cleaned_data['email']
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
             username = form.cleaned_data['username']
-            
+
             # Verificar si ya existe un usuario con el mismo nombre de usuario
             if User.objects.filter(username=username).exists():
-                return JsonResponse({'success': False, 'message': 'Ya existe un usuario con este nombre de usuario.'})
-            
-            # Guarda el usuario creado por el formulario
-            user = form.save()
+                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este nombre de usuario.'})
 
-            # Agrega al usuario al grupo "owner"
+            # Verificar si ya existe un usuario con el mismo correo electrónico
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este correo electrónico.'})
+
+            # Guardar el usuario creado por el formulario con los datos adicionales
+            user = form.save(commit=False)
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+            # Agregar al usuario al grupo "owner"
             user.groups.add(owner_group)
             user.save()
 
@@ -109,7 +118,6 @@ def register_user(request):
             return JsonResponse({'success': False, 'message': 'Por favor, corrige los errores en el formulario.', 'errors': errors})
     else:
         return JsonResponse({'success': False, 'message': 'Método no permitido.'})
- 
  
 @login_required(login_url='login', redirect_field_name='login')    
 def profile_view(request):
