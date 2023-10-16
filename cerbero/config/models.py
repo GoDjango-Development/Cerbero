@@ -1,6 +1,6 @@
 from django.db import models
 from django.dispatch import receiver    
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.db.models.signals import post_save 
 from django.conf import settings
 from django.core.files import File
@@ -196,13 +196,11 @@ class ServiceModificationDNS(models.Model):
     service = models.ForeignKey(DNSService, on_delete=models.CASCADE)
     modified_by = models.ForeignKey(User, on_delete=models.CASCADE)
     modified_at = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         db_table = 'ServiceModificationDNS'
         verbose_name = 'Service Modification DNS'
         verbose_name_plural = 'Service Modifications DNS' 
-  
-       
+    
 def user_directory_path_profile(instance, filename):
     profile_picture_name = 'users/{0}/profile.jpg'.format(instance.user.username)
     full_path = os.path.join(settings.MEDIA_ROOT, profile_picture_name)
@@ -212,25 +210,21 @@ def user_directory_path_profile(instance, filename):
 
     return profile_picture_name
 
-
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     picture = models.ImageField( upload_to=user_directory_path_profile)
+    #auth_token = models.CharField(max_length=100)
+    #is_verified = models.BooleanField(default=False)
     date_created = models.DateField(auto_now_add=True)
 
-   
     def __str__(self):
         return self.user.username
 
-     
-@receiver(post_save, sender=User)
 def create_user_profile(sender, instance, created, **kwargs):
     if created and not hasattr(instance, 'profile'):
         profile = Profile.objects.create(user=instance)
         select_random_image(profile)
         
-        
-@receiver(post_save, sender=User)
 def save_user_profile(sender, instance, **kwargs):
     try:
         instance.profile.save()
@@ -253,3 +247,28 @@ def select_random_image(profile):
     # Asignar la imagen seleccionada al perfil
     with open(selected_image_path, 'rb') as f:
         profile.picture.save(selected_image, File(f))
+
+def add_user_to_owner_group(sender, instance, created,  **kwargs):
+    if created:
+        try:
+            owner = Group.objects.get(name='owner')
+        except Group.DoesNotExist:
+            owner = Group.objects.create(name='owner')
+        if not instance.user.is_superuser:
+            instance.user.groups.add(owner)
+            
+def add_user_to_staff_group(sender, instance, created,  **kwargs):
+    if not created:
+        staff = Group.objects.create(name='staff')
+
+
+
+post_save.connect(create_user_profile, sender=User)
+post_save.connect(save_user_profile, sender=User)
+post_save.connect(add_user_to_owner_group, sender=Profile)
+post_save.connect(add_user_to_staff_group, sender=Group)
+
+
+
+
+   

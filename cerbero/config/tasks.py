@@ -542,7 +542,6 @@ def test_https(service, stop_flag):
                 # Eliminar la bandera de detención de prueba
                 stop_flags_http.pop(service.pk, None)
 
-
 @shared_task
 def monitoreo_tcp_services(pk, resume=False):
     # Obtener el servicio de la base de datos

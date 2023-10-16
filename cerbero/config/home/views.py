@@ -1,11 +1,21 @@
+import os
 from typing import re
-
+from cerbero.settings import EMAIL_HOST_USER
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import authenticate, login
 from django.views.decorators.cache import never_cache
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail, EmailMultiAlternatives
+from email.mime.image import MIMEImage
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.models import Group, User
 from config.models import Profile
 from .forms import CustomUserCreationForm
@@ -26,7 +36,7 @@ def dashboard(request):
 def admin(request):
     return render(request, 'config/admin_home.html')
 
-
+@login_required(login_url='login', redirect_field_name='login')
 def user_list(request):
     users = User.objects.select_related('profile').all()
     return render(request,'config/userlist.html', {'users':users})
@@ -86,7 +96,6 @@ def register_user(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             User = get_user_model()
-            owner_group = Group.objects.get(name='owner')
 
             email = form.cleaned_data['email']
             first_name = form.cleaned_data['first_name']
@@ -106,19 +115,73 @@ def register_user(request):
             user.email = email
             user.first_name = first_name
             user.last_name = last_name
+            user.is_active = False #Desactiva la cuenta hasta que no confirme
             user.save()
+            
+            token = default_token_generator.make_token(user)            
+            current_site = get_current_site(request)            
+            uid = urlsafe_base64_encode(force_bytes(user.pk))
+            scheme = request.scheme
+            token_url = f"{scheme}://{current_site.domain}/confirmar/{uid}/{token}"
+            # Renderizar el contenido del correo electrónico en formato HTML
+            html_content = render_to_string('email/confirmation.html', {
+                'user': user,
+                'token_url': token_url
+            })
+            # Obtener la ruta de la imagen
+            image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')  
+            # Leer el contenido de la imagen
+            with open(image_path, 'rb') as f:
+                image_data = f.read()
 
-            # Agregar al usuario al grupo "owner"
-            user.groups.add(owner_group)
-            user.save()
+            # Obtener el nombre de archivo de la imagen
+            image_filename = 'logo.png'
+            print(f'email solo {email}')
+            print(f'email con usuario{user.email}')
+             # Crear una instancia de EmailMultiAlternatives
+            msg = EmailMultiAlternatives(
+                subject='Confirmación de correo electrónico',
+                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+                from_email=EMAIL_HOST_USER,
+                to=[email],
+            )
+            msg.attach_alternative(html_content, "text/html")
+            image = MIMEImage(image_data)
+            image.add_header('Content-ID', '<imagen>')
+            image.add_header('Content-Disposition', 'inline', filename=image_filename)
+            msg.attach(image)
+            
+            msg.send()
 
-            return JsonResponse({'success': True, 'message': '¡Registro exitoso!'})
+
+
+            return JsonResponse({'success': True, 'message': '¡Registro exitoso revice su correo para confirmar su identidad!'})
         else:
             errors = dict(form.errors.items())
             return JsonResponse({'success': False, 'message': 'Por favor, corrige los errores en el formulario.', 'errors': errors})
     else:
         return JsonResponse({'success': False, 'message': 'Método no permitido.'})
- 
+
+def account_activation(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        user = get_user_model().objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        user = None
+
+    if user is not None and default_token_generator.check_token(user, token):
+        # Activar la cuenta del usuario
+        user.is_active = True
+        user.save()
+
+        # Redirigir a una página de éxito o mostrar un mensaje de éxito
+        return render(request, 'registration/account_activation_success.html')  
+
+
+def create_user(request):
+    pass
+
+
 @login_required(login_url='login', redirect_field_name='login')    
 def profile_view(request):
     user = request.user
@@ -165,3 +228,46 @@ def edit_profile(request):
         return render(request, 'config/edit_profile_admin.html', context)
     else:
         return render(request, 'config/edit_profile.html', context)
+    
+    
+    
+def group_list(request):
+    groups = Group.objects.all()
+    return render(request,'config/listgroup.html', {'groups':groups})
+
+
+def create_group(request):
+    if request.method == 'POST':
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            User = get_user_model()
+
+            email = form.cleaned_data['email']
+            first_name = form.cleaned_data['first_name']
+            last_name = form.cleaned_data['last_name']
+            username = form.cleaned_data['username']
+
+            # Verificar si ya existe un usuario con el mismo nombre de usuario
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este nombre de usuario.'})
+
+            # Verificar si ya existe un usuario con el mismo correo electrónico
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este correo electrónico.'})
+
+            # Guardar el usuario creado por el formulario con los datos adicionales
+            user = form.save(commit=False)
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+
+            user.save()
+
+            return JsonResponse({'success': True, 'message': '¡Registro exitoso!'})
+        else:
+            errors = dict(form.errors.items())
+            return JsonResponse({'success': False, 'message': 'Por favor, corrige los errores en el formulario.', 'errors': errors})
+    else:
+        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+

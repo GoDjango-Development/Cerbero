@@ -32,6 +32,8 @@ urlpatterns = [
     path('cerbero/admin/userlist/', config.home.views.user_list , name='user_list'),
     path('register/', config.home.views.register_user , name='register'),
     path('logout/', config.home.views.logout_view , name='logout'),
+    path('confirmar/<str:uidb64>/<str:token>/', config.home.views.account_activation, name='account_activation'),
+    path('cerbero/admin/grouplist/', config.home.views.group_list , name='group_list'),
     path('services/', include('config.urls')),
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),

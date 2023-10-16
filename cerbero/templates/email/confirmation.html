@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Confirmación de correo electrónico</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        font-family: sans-serif;
+      }
+      
+      body {
+        align-items: center;
+        display: flex;
+        height: 100vh;
+        justify-content: center;
+      }
+      
+      .card h2 {
+        font-size: 2rem;
+        font-weight: 500;
+        line-height: 1.2;
+        margin-bottom: 0.5rem;
+        margin-top: 0;
+      }
+      
+      .card {
+        border-radius: 20px;
+        box-shadow: 4px 4px 4px 3px #c9c2c2;
+        display: flex;
+        overflow: hidden;
+        width: 600px;
+      }
+      
+      .card .ladoIzq {
+        color: white;
+        padding: 48px;
+        position: relative;
+        width: 80%;
+      }
+      
+      .card .ladoIzq::after {
+        background-color: orangered;
+        border-radius: 24px;
+        box-shadow: 3px -2px 13px 0px #525252;
+        content: '';
+        height: 100%;
+        left: 0;
+        position: absolute;
+        top: 0;
+        transform: skew(160deg, 0);
+        transform-origin: top left;
+        width: 80%;
+        z-index: -1;
+      }
+      
+      .card .ladoDer {
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        padding-right: 8px;
+        width: 100%;
+      }
+      
+      .card .cuerpo {
+        line-height: 150%;
+        text-align: center;
+      }
+      
+      .card .centrahrz {
+        text-align: center;
+      }
+      
+      .card .btn {
+        background: white;
+        border-radius: 5px;
+        display: inline-block;
+        margin-top: 18px;
+        padding: 14px;
+      }
+      
+      .card a.btn {
+        text-decoration: none;
+      }
+      
+      .card a.btn:hover {
+        opacity: 0.8;
+      }
+      
+      .logo {
+        display: block;
+        max-width: 600px;
+        width: 180px;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="ladoIzq">
+        <img src="cid:imagen" alt="Logo" class="logo" />
+      </div>
+      <div class="ladoDer">
+        <h2>Confirmación de correo electrónico</h2>
+        <div class="cuerpo">
+          <p>¡Hola {{ user.get_full_name }}!</p>
+          <p>Gracias por registrarte en nuestro sitio web. Para activar tu cuenta, por favor, haz clic en el siguiente enlace:</p>
+          <p>
+            <a href="{{ token_url }}">{{ token_url }}</a>
+          </p>
+          <p>Si no puedes hacer clic en el enlace, puedes copiar y pegar la siguiente URL en tu navegador:</p>
+          <p>{{ token_url }}</p>
+          <p>Atentamente,</p>
+          <p>El equipo de nuestro sitio web</p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

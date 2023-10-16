@@ -42,7 +42,6 @@ Listado de Usuarios
     <th>Fecha de Registro</th>
     <th>Último acceso</th>
     <th>Grupo</th>
-    <th>Permisos</th>
     <th>Opciones</th>
 </tr>
 
@@ -61,10 +60,7 @@ Listado de Usuarios
       {{ group.name }}
       {% if not forloop.last %}, {% endif %}
     {% endfor %}</td>
-    <td scope="col" style="width: 15%;">{% for permission in user.user_permissions.all %}
-      {{ permission.name }}
-      {% if not forloop.last %}, {% endif %}
-    {% endfor %}</td>
+    
     
 
     <td scope="col" style="width: 10%;">
