@@ -5,6 +5,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth import authenticate, login
 from django.views.decorators.cache import never_cache
@@ -17,10 +19,9 @@ from django.utils.html import strip_tags
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth.models import Group, User
+from django.contrib.auth.forms import UserChangeForm
 from config.models import Profile
-from .forms import CustomUserCreationForm
-from django.views.generic import TemplateView, View
-from .forms import EditProfileForm
+from .forms import CustomUserCreationForm, UpdateUser,EditProfileForm
 from django.http import JsonResponse
 from django.conf import settings
 from django.urls import reverse
@@ -104,45 +105,46 @@ def register_user(request):
 
             # Verificar si ya existe un usuario con el mismo nombre de usuario
             if User.objects.filter(username=username).exists():
-                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este nombre de usuario.'})
+                messages.error(request, 'Ya existe un usuario con este nombre de usuario.')
 
             # Verificar si ya existe un usuario con el mismo correo electrónico
             if User.objects.filter(email=email).exists():
-                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este correo electrónico.'})
+                messages.error(request, 'Ya existe un usuario con este correo electrónico.')
 
             # Guardar el usuario creado por el formulario con los datos adicionales
             user = form.save(commit=False)
             user.email = email
             user.first_name = first_name
             user.last_name = last_name
-            user.is_active = False #Desactiva la cuenta hasta que no confirme
+            user.is_active = False  # Desactiva la cuenta hasta que no confirme
             user.save()
-            
-            token = default_token_generator.make_token(user)            
-            current_site = get_current_site(request)            
+
+            token = default_token_generator.make_token(user)
+            current_site = get_current_site(request)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
             scheme = request.scheme
             token_url = f"{scheme}://{current_site.domain}/confirmar/{uid}/{token}"
+
             # Renderizar el contenido del correo electrónico en formato HTML
             html_content = render_to_string('email/confirmation.html', {
                 'user': user,
                 'token_url': token_url
             })
+
             # Obtener la ruta de la imagen
-            image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')  
+            image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
             # Leer el contenido de la imagen
             with open(image_path, 'rb') as f:
                 image_data = f.read()
 
             # Obtener el nombre de archivo de la imagen
             image_filename = 'logo.png'
-            print(f'email solo {email}')
-            print(f'email con usuario{user.email}')
-             # Crear una instancia de EmailMultiAlternatives
+
+            # Crear una instancia de EmailMultiAlternatives
             msg = EmailMultiAlternatives(
                 subject='Confirmación de correo electrónico',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-                from_email=EMAIL_HOST_USER,
+                from_email=settings.EMAIL_HOST_USER,
                 to=[email],
             )
             msg.attach_alternative(html_content, "text/html")
@@ -150,17 +152,24 @@ def register_user(request):
             image.add_header('Content-ID', '<imagen>')
             image.add_header('Content-Disposition', 'inline', filename=image_filename)
             msg.attach(image)
-            
+
             msg.send()
+            
+            messages.success(request, 'Por favor, acceda al correo proporcionado y verifique su identidad.')
 
-
-
-            return JsonResponse({'success': True, 'message': '¡Registro exitoso revice su correo para confirmar su identidad!'})
-        else:
-            errors = dict(form.errors.items())
-            return JsonResponse({'success': False, 'message': 'Por favor, corrige los errores en el formulario.', 'errors': errors})
+            return HttpResponseRedirect(reverse('login'))
     else:
-        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
+        form = CustomUserCreationForm()
+    return render(request, 'registration/register.html', {'form': form})
+
+@csrf_exempt
+@require_POST
+@login_required(login_url='login', redirect_field_name='login')
+def delete_user(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    user.delete()
+
+    return JsonResponse({'mensaje': 'El registro ha sido eliminado exitosamente.'})
 
 def account_activation(request, uidb64, token):
     try:
@@ -179,7 +188,56 @@ def account_activation(request, uidb64, token):
 
 
 def create_user(request):
+    user = User.objects.all()
+
+    
+    if request.method == 'POST':
+        form = UpdateUser(request.POST)
+        if form.is_valid():
+            form.save()
+
+           
+
+            return redirect('user_list')
+    else:
+        form = UpdateUser()
+
+    groups = Group.objects.all()
+
+    context = {
+        'form': form,
+        'user': user,
+        'groups': groups,
+    }
+    return render(request, 'config/edit_user.html', context)
+
     pass
+
+def edit_user(request, pk):
+    user = get_object_or_404(User, pk=pk)
+
+    
+    if request.method == 'POST':
+        form = UpdateUser(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+
+            # Actualizar grupos
+            selected_groups = request.POST.getlist('groups')
+            user.groups.set(selected_groups)
+
+            return redirect('user_list')
+    else:
+        form = UpdateUser(instance=user)
+
+    groups = Group.objects.all()
+
+    context = {
+        'form': form,
+        'user': user,
+        'groups': groups,
+    }
+    return render(request, 'config/edit_user.html', context)
 
 
 @login_required(login_url='login', redirect_field_name='login')    

@@ -1,0 +1,193 @@
+{% load static %}
+{% load widget_tweaks %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="x-ua-compatible" content="ie=edge" />
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
+    <title>Inicio de sesión | Cerbero</title>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="{% static 'lib/fontawesome-free/css/all.min.css' %}" />
+    <!-- Theme style -->
+    <link rel="stylesheet" href="{% static 'lib/adminlte-3.1.0/css/adminlte.min.css' %}" />
+    <!-- jQuery -->
+    <script src="{% static 'lib/jquery/jquery.min.js' %}"></script>
+    <!-- Bootstrap 4 -->
+    <script src="{% static 'lib/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+    <!-- Sweetalert2 -->
+    <script src="{% static 'lib/sweetalert2-9.10.0/sweetalert2.all.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/sweetalert2-9.10.0/sweetalert2.min.css' %}" />
+    <script src="{% static 'lib/toastr/toastr.min.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'lib/toastr/toastr.min.css' %}" />
+    <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
+    <script src="{% static 'lib/chart.js/chart.min.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/jquery.validation/1.16.0/additional-methods.min.js"></script>
+     <!-- mensajes -->
+     {% if messages %}
+     <script>
+   $(document).ready(function () {
+     {% for message in messages %}
+       {% if message.tags %}
+         {% if 'success' in message.tags %}
+           toastr.success("{{ message }}", "Éxito");
+         {% elif 'warning' in message.tags %}
+           toastr.warning("{{ message }}", "Advertencia");
+         {% elif 'error' in message.tags %}
+           toastr.error("{{ message }}", "Error");
+         {% else %}
+           toastr.info("{{ message }}");
+         {% endif %}
+       {% else %}
+         toastr.error("{{ message }}");
+       {% endif %}
+     {% endfor %}
+   });
+ </script>
+   {% endif %}
+    <style>
+      .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      
+      .login-box {
+        max-width: 1000px;
+        width: 500px;
+        border-radius: 5px;
+        background-color: #fff;
+        padding: 20px;
+        height: 600px;
+        /* Ajusta el valor de margen superior según tus necesidades */
+      }
+      
+      .login-logo img {
+        max-width: 600px;
+        width: 180px;
+        height: auto;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 30px;
+      }
+    </style>
+
+    <script>
+      $(document).ready(function () {
+        $('#registroForm').validate({
+          rules: {
+            username: {
+              required: true,
+              minlength: 4,
+              maxlength: 150
+            },
+            email: {
+              required: true,
+              email: true,
+              
+            },
+            password1: {
+              required: true,
+              minlength: 8
+            },
+            password2: {
+              required: true,
+              equalTo: '#id_password1'
+            },
+            first_name: {
+              required: true,
+              minlength: 2,
+              maxlength: 150
+            },
+            last_name: {
+              required: true,
+              minlength: 2,
+              maxlength: 150
+            }
+          },
+          messages: {
+            username: {
+              required: 'Ingresa un nombre de usuario',
+              minlength: 'El nombre de usuario debe tener al menos 4 caracteres',
+              maxlength: 'El nombre de usuario no puede tener más de 150 caracteres'
+            },
+            email: {
+              required: 'Ingresa una dirección de correo electrónico',
+              email: 'Ingresa una dirección de correo electrónico válida'
+            },
+            password1: {
+              required: 'Ingresa una contraseña',
+              minlength: 'La contraseña debe tener al menos 8 caracteres'
+            },
+            password2: {
+              required: 'Confirma tu contraseña',
+              equalTo: 'Las contraseñas no coinciden'
+            },
+            first_name: {
+              required: 'Ingresa tu nombre',
+              minlength: 'El nombre debe tener al menos 2 caracteres',
+              maxlength: 'El nombre no puede tener más de 150 caracteres'
+            },
+            last_name: {
+              required: 'Ingresa tu apellido',
+              minlength: 'El apellido debe tener al menos 2 caracteres',
+              maxlength: 'El apellido no puede tener más de 150 caracteres'
+            }
+          },errorClass: 'is-invalid',
+          errorElement: 'span',
+          errorPlacement: function (error, element) {
+            error.addClass('text-danger')
+            error.insertAfter(element)
+          }
+      });
+    });
+
+      
+    </script>
+  </head>
+
+  
+
+    <!-- Registro de usuario -->
+    <div class="card m-5">
+      <div class="card-header">
+        <h5 class="card-title" id="registroModalLabel">Registro de Usuario</h5>
+      </div>
+      <div class="card-body">
+        <!-- Formulario de Registro -->
+        <form id="registroForm" method="post" enctype="multipart/form-data">
+          {% csrf_token %}
+
+          <div class="card-body">
+            <div class="row">
+              {% for field in form.visible_fields %}
+                <div class="col-md-6">
+                  <div class="form-group">
+                    <label for="{{ field.id_for_label }}">
+                      {{ field.label }}{% if field.field.required %}
+                        <span class="text-danger">*</span>
+                      {% endif %}
+                    </label>
+                    {{ field|add_class:'form-control' }}
+
+                    {% for error in field.errors %}
+                    <span id="{{ field.auto_id }}_error" class="text-danger">{{ error }}</span>
+
+                    {% endfor %}
+
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary">Registrarse</button>
+        </form>
+      </div>
+    </div>
+
+    
+</body>
+
+</html>

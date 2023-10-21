@@ -66,13 +66,13 @@ Listado de Usuarios
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="#" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                <a href="{% url "edituser" user.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
                     title="Editar Registro"><i class="fas fa-edit"></i></a>
             </div>
            
             <div class="col-12 col-sm-6 mb-1 ">
                 <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"><i class="fas fa-trash-alt"></i></button>
+                    title="Eliminar Registro" data-objeto-id="{{user.id }}" ><i class="fas fa-trash-alt"></i></button>
             </div>
            
         </div>
@@ -81,7 +81,7 @@ Listado de Usuarios
 {% endfor %}
 {% endblock %}
 {% block buttons_list %}
-<a href="#" class="btn btn-primary btn-flat btnTest">
+<a href="{% url "createuser" %}" class="btn btn-primary btn-flat btnTest">
     <i class="fas fa-plus"></i> Nuevo registro
 </a>
 

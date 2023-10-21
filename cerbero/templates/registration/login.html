@@ -52,124 +52,7 @@
       }
     </style>
 
-    <script>
-      $(document).ready(function () {
-        $('#registroForm').validate({
-            errorClass: 'text-danger',
-            errorElement: 'span',
-            rules: {
-                usernamer: 'required',
-                password1: {
-                    required: true,
-                    minlength: 8
-                },
-                password2: {
-                    required: true,
-                    equalTo: '#password1'
-                },
-                email: {
-                    required: true,
-                    email: true
-                },
-                first_name: {
-                    required: true,
-                    pattern: /^[A-Z][a-z]+(?: [A-Z][a-z]+)*$/
-                },
-                last_name: {
-                    required: true,
-                    pattern: /^[A-Z][a-z]+(?: [A-Z][a-z]+)*$/
-                },
-            },
-            messages: {
-                usernamer: 'Por favor, ingresa un nombre de usuario',
-                password1: {
-                    required: 'Por favor, ingresa una contraseña',
-                    minlength: 'La contraseña debe tener más de 8 caracteres'
-                },
-                password2: {
-                    required: 'Por favor, confirma tu contraseña',
-                    equalTo: 'Las contraseñas no coinciden'
-                },
-                email: {
-                    required: 'Por favor, ingresa un correo electrónico',
-                    email: 'Por favor, ingresa un correo electrónico válido'
-                },
-                first_name: {
-                    required: 'Por favor, ingresa tus nombres',
-                    pattern: 'El nombre debe comenzar con letras mayúscula seguida de minúscula'
-                },
-                last_name: {
-                    required: 'Por favor, ingresa tus apellidos',
-                    pattern: 'El apellido debe comenzar con letras mayúscula seguida de minúscula'
-                },
-            },
-            highlight: function (element) {
-                $(element).addClass('is-invalid');
-            },
-            unhighlight: function (element) {
-                $(element).removeClass('is-invalid');
-            },
-            errorPlacement: function (error, element) {
-                error.insertAfter(element);
-            },
-            submitHandler: function (form) {
-                var csrftoken = getCookie('csrftoken');
-                $.ajax({
-                    type: 'POST',
-                    url: '{% url "register" %}',
-                    data: {
-                        username: $('#usernamer').val(),
-                        password1: $('#password1').val(),
-                        password2: $('#password2').val(),
-                        email: $('#email').val(),
-                        first_name: $('#first_name').val(),
-                        last_name: $('#last_name').val(),
-                        csrfmiddlewaretoken: csrftoken
-                    },
-                    success: function (response) {
-                        if (response.success) {
-                            $('#registroModal').modal('hide');
-                            $('#usernamer').val('');
-                            $('#password1').val('');
-                            $('#password2').val('');
-                            $('#email').val('');
-                            $('#first_name').val('');
-                            $('#last_name').val('');
-                            toastr.success('Usuario creado con éxito');
-                        }
-                    },
-                    error: function (xhr, status, response) {
-                        toastr.error('Error en el registro de usuario. Por favor, intenta nuevamente.');
-                        console.log(xhr.responseText);
-                        console.log(response);
-                        if (response.errors) {
-                            var errorMessage = '';
-                            for (var field in response.errors) {
-                                errorMessage += '<li>' + response.errors[field].join(', ') + '</li>';
-                            }
-                            toastr.error('<ul>' + errorMessage + '</ul>');
-                        }
-                    }
-                });
-            }
-        });
-    });
-      
-      function getCookie(name) {
-        var cookieValue = null
-        if (document.cookie && document.cookie !== '') {
-          var cookies = document.cookie.split(';')
-          for (var i = 0; i < cookies.length; i++) {
-            var cookie = cookies[i].trim()
-            if (cookie.substring(0, name.length + 1) === name + '=') {
-              cookieValue = decodeURIComponent(cookie.substring(name.length + 1))
-              break
-            }
-          }
-        }
-        return cookieValue
-      }
-    </script>
+    
   </head>
 
   <body class="hold-transition login-page">
@@ -195,7 +78,7 @@
                 {% if not user_registered %}
                   <div class="text-center mt-3">
                     <p>¿No tienes una cuenta?</p>
-                    <a href="#" class="btn btn-secondary btn-block" data-toggle="modal" data-target="#registroModal">Registrarse</a>
+                    <a href="{% url "register" %}" class="btn btn-secondary btn-block" >Registrarse</a>
                   </div>
                 {% endif %}
               </div>
@@ -205,62 +88,10 @@
       </div>
     </div>
 
-    <!-- Modal de Registro -->
-    <div class="modal fade" id="registroModal" tabindex="-1" role="dialog" aria-labelledby="registroModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-md" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="registroModalLabel">Registro de Usuario</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          </div>
-          <div class="modal-body">
-            <!-- Formulario de Registro -->
-            <form id="registroForm" method="post">
-              {% csrf_token %}
+  
 
-              <div class="form-group row">
-                <label for="usernamer" class="col-sm-6 col-form-label">Nombre de usuario:</label>
-                <div class="col-sm-6">
-                  <input type="text" class="form-control" id="usernamer" name="usernamer" required />
-                </div>
-              </div>
-              <div class="form-group row">
-                <label for="password1" class="col-sm-6 col-form-label">Contraseña:</label>
-                <div class="col-sm-6">
-                  <input type="password" class="form-control" id="password1" name="password1" required />
-                </div>
-              </div>
-              <div class="form-group row">
-                <label for="password2" class="col-sm-6 col-form-label">Confirmar Contraseña:</label>
-                <div class="col-sm-6">
-                  <input type="password" class="form-control" id="password2" name="password2" required />
-                </div>
-              </div>
-              <div class="form-group row">
-                <label for="email" class="col-sm-6 col-form-label">Correo electrónico:</label>
-                <div class="col-sm-6">
-                  <input type="email" class="form-control" id="email" name="email" required />
-                </div>
-              </div>
-              <div class="form-group row">
-                <label for="first_name" class="col-sm-6 col-form-label">Nombres:</label>
-                <div class="col-sm-6">
-                  <input type="text" class="form-control" id="first_name" name="first_name" required />
-                </div>
-              </div>
-              <div class="form-group row">
-                <label for="last_name" class="col-sm-6 col-form-label">Apellidos:</label>
-                <div class="col-sm-6">
-                  <input type="text" class="form-control" id="last_name" name="last_name" required />
-                </div>
-              </div>
-              <button type="submit" class="btn btn-primary">Registrarse</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-    <!-- Dentro de tu archivo HTML -->
+
+    <!-- mensajes -->
     {% if messages %}
       <script>
     $(document).ready(function () {

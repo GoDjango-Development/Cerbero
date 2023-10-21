@@ -1,0 +1,61 @@
+{% extends 'base/form.html' %}
+{% load widget_tweaks %}
+{% block title %}
+Editar Usuario | Cerbero
+{% endblock title %}
+{% block content %}
+
+
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-plus"></i> Editar Usuario</h3>
+    </div>
+    <form method="post" id="editUserForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="card-body">
+            <div class="row">
+                {% for field in form.visible_fields %}
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                            {{ field|add_class:"form-control" }}
+                            {% for error in field.errors %}
+                                {% if error != "El nombre ya está en uso." %}
+                                    <span class="text-danger">{{ error }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                
+            </div>
+          
+        </div>
+
+        <div class="card-footer">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save"></i> Guardar registro
+            </button>
+            <a href="{% url 'user_list' %}" class="btn btn-danger">
+                <i class="fas fa-times"></i> Cancelar
+            </a>
+        </div>
+       
+    </form>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{% endblock %}
