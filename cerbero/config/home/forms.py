@@ -25,7 +25,6 @@ class EditProfileForm(forms.ModelForm):
 
  
 class UpdateUser(UserChangeForm):
-    
     class Meta(UserChangeForm.Meta):
         model = User
         fields = ['first_name','last_name',"email", "username", "is_active", "groups",'is_superuser']
@@ -41,7 +40,7 @@ class CustomUserCreationForm(UserCreationForm):
     last_name = forms.CharField(label='Apellidos')
 
     class Meta(UserCreationForm.Meta):
-        model = get_user_model()
+        model = User
         fields = UserCreationForm.Meta.fields + ('email', 'first_name', 'last_name')
         
         def clean_first_name(self):

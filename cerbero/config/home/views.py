@@ -96,24 +96,23 @@ def register_user(request):
     if request.method == 'POST':
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            User = get_user_model()
-
+ 
             email = form.cleaned_data['email']
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
             username = form.cleaned_data['username']
-
-            # Verificar si ya existe un usuario con el mismo nombre de usuario
-            if User.objects.filter(username=username).exists():
-                messages.error(request, 'Ya existe un usuario con este nombre de usuario.')
-
-            # Verificar si ya existe un usuario con el mismo correo electrónico
             if User.objects.filter(email=email).exists():
-                messages.error(request, 'Ya existe un usuario con este correo electrónico.')
-
+                form.add_error('email', 'ya existe un usuario con este correo electrónico')
+            if form.errors:
+                form_errors = form.errors.get_json_data()
+                context= {
+                        'form': form,'form_errors':form_errors
+                    }
+                return render(request, 'registration/register.html', context)
             # Guardar el usuario creado por el formulario con los datos adicionales
             user = form.save(commit=False)
             user.email = email
+            user.username = username
             user.first_name = first_name
             user.last_name = last_name
             user.is_active = False  # Desactiva la cuenta hasta que no confirme
@@ -186,7 +185,7 @@ def account_activation(request, uidb64, token):
         # Redirigir a una página de éxito o mostrar un mensaje de éxito
         return render(request, 'registration/account_activation_success.html')  
 
-
+@login_required(login_url='login', redirect_field_name='login')
 def create_user(request):
     user = User.objects.all()
 
@@ -213,6 +212,7 @@ def create_user(request):
 
     pass
 
+@login_required(login_url='login', redirect_field_name='login')
 def edit_user(request, pk):
     user = get_object_or_404(User, pk=pk)
 
@@ -287,45 +287,9 @@ def edit_profile(request):
     else:
         return render(request, 'config/edit_profile.html', context)
     
-    
-    
+@login_required(login_url='login', redirect_field_name='login')  
 def group_list(request):
     groups = Group.objects.all()
     return render(request,'config/listgroup.html', {'groups':groups})
 
-
-def create_group(request):
-    if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
-        if form.is_valid():
-            User = get_user_model()
-
-            email = form.cleaned_data['email']
-            first_name = form.cleaned_data['first_name']
-            last_name = form.cleaned_data['last_name']
-            username = form.cleaned_data['username']
-
-            # Verificar si ya existe un usuario con el mismo nombre de usuario
-            if User.objects.filter(username=username).exists():
-                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este nombre de usuario.'})
-
-            # Verificar si ya existe un usuario con el mismo correo electrónico
-            if User.objects.filter(email=email).exists():
-                return JsonResponse({'warning': False, 'message': 'Ya existe un usuario con este correo electrónico.'})
-
-            # Guardar el usuario creado por el formulario con los datos adicionales
-            user = form.save(commit=False)
-            user.email = email
-            user.first_name = first_name
-            user.last_name = last_name
-            user.save()
-
-            user.save()
-
-            return JsonResponse({'success': True, 'message': '¡Registro exitoso!'})
-        else:
-            errors = dict(form.errors.items())
-            return JsonResponse({'success': False, 'message': 'Por favor, corrige los errores en el formulario.', 'errors': errors})
-    else:
-        return JsonResponse({'success': False, 'message': 'Método no permitido.'})
 
