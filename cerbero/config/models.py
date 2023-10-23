@@ -254,19 +254,18 @@ def add_user_to_owner_group(sender, instance, created,  **kwargs):
             owner = Group.objects.get(name='owner')
         except Group.DoesNotExist:
             owner = Group.objects.create(name='owner')
+            Group.objects.create(name='staff')
+
         if not instance.user.is_superuser:
             instance.user.groups.add(owner)
             
-def add_user_to_staff_group(sender, instance, created,  **kwargs):
-    if not created:
-        staff = Group.objects.create(name='staff')
+
 
 
 
 post_save.connect(create_user_profile, sender=User)
 post_save.connect(save_user_profile, sender=User)
 post_save.connect(add_user_to_owner_group, sender=Profile)
-post_save.connect(add_user_to_staff_group, sender=Group)
 
 
 
