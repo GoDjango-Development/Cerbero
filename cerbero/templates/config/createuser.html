@@ -1,12 +1,12 @@
 {% extends 'base/form_admin.html' %}
 {% load widget_tweaks %}
 {% block title %}
-  Editar mi perfil | Cerbero
+  Crear usuario | Cerbero
 {% endblock %}
 {% block content %}
   <div class="card">
     <div class="card-header">
-      <h3 class="card-title"><i class="fas fa-plus"></i> Editar mi perfil</h3>
+      <h3 class="card-title"><i class="fas fa-plus"></i>Crear usuario</h3>
     </div>
     <div class="card-body"></div>
     <form method="post" id="cuserForm" enctype="multipart/form-data">
@@ -23,9 +23,7 @@
                 </label>
                 {{ field|add_class:'form-control' }}
                 {% for error in field.errors %}
-                  {% if error != 'El nombre ya está en uso.' %}
                     <span class="text-danger">{{ error }}</span>
-                  {% endif %}
                 {% endfor %}
               </div>
             </div>

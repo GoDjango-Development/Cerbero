@@ -223,7 +223,6 @@ def create_user(request):
     pass
 
 @login_required(login_url='login', redirect_field_name='login')
-@user_passes_test(is_superuser, login_url='home')
 def edit_user(request, pk):
     user = get_object_or_404(User, pk=pk)
 

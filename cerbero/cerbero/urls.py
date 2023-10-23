@@ -23,7 +23,6 @@ from django.views.static import serve
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('inicio/', config.home.views.dashboard , name='home'),
     path('login/', config.home.views.login_view , name='login'),
     path('detile_profile/', config.home.views.profile_view , name='detile_profile'),
