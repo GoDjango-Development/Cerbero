@@ -15,8 +15,11 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 
+def is_not_superuser(user):
+    return not user.is_superuser
+
 def is_creator_admin(user, service):
-    return service.create_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+    return service.create_by == user or user.groups.filter(name='staff').exists() 
 
 
 def verify_edit_allowed(view_func):
@@ -57,6 +60,7 @@ def verify_deletion_allowed(view_func):
 
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def create_service_icmp(request):
     if request.method == 'POST':
         form = ServiceICMPForm(request.POST)
@@ -75,6 +79,7 @@ def create_service_icmp(request):
     return render(request, 'config/createicmp.html', {'form': form})
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def view_icmp(request):
     if request.user.groups.filter(name='staff').exists():
         contexto = {'icmp_s': icmp_s.objects.all()}
@@ -171,6 +176,7 @@ def check_service_icmp(request, pk):
 
 @login_required(login_url='login', redirect_field_name='login')
 @verify_edit_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def edit_icmp(request, pk):
     service = get_object_or_404(icmp_s, pk=pk)
     
@@ -200,6 +206,7 @@ def edit_icmp(request, pk):
 
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def service_detail_icmp(request, pk):
     service = icmp_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -258,6 +265,7 @@ def statusicmpgraficpoint(request,pk):
 @require_POST
 @login_required(login_url='login', redirect_field_name='login')
 @verify_deletion_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def delete_icmp(request, pk):
     service = get_object_or_404(icmp_s, pk=pk)
     

@@ -17,9 +17,12 @@ import json
 
 
 
+def is_not_superuser(user):
+    return not user.is_superuser
+
 
 def is_creator_admin(user, service):
-    return service.create_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+    return service.create_by == user or user.groups.filter(name='staff').exists()
 
 def verify_edit_allowed(view_func):
     @wraps(view_func)
@@ -56,6 +59,7 @@ def verify_deletion_allowed(view_func):
 
 
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def create_service_dns(request):
     if request.method == 'POST':
         form = ServiceDNSForm(request.POST)
@@ -158,8 +162,8 @@ def update_data_dns(request):
         update.append(date)
     return JsonResponse(update, safe=False)
 
-
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def list_service_dns(request):
     if request.user.groups.filter(name = 'staff').exists():        
 
@@ -174,6 +178,7 @@ def list_service_dns(request):
 
 @login_required(login_url='login', redirect_field_name ='login')
 @verify_edit_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def edit_dns(request, pk):
     service = get_object_or_404(dns_s, pk=pk)
 
@@ -201,6 +206,7 @@ def edit_dns(request, pk):
     return render(request, 'config/editdns.html', {'form': form})
 
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def service_detail_dns(request, pk):
     service = dns_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -263,6 +269,7 @@ def statusdnsrecord(request,pk):
 @require_POST
 @login_required(login_url='login', redirect_field_name ='login')
 @verify_deletion_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def delete_dns(request, pk):
     service = get_object_or_404(dns_s, pk=pk)
 

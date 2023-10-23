@@ -16,6 +16,8 @@ from .forms import ServiceHTTPForm
 from config.tasks import monitoreo_http_services
 import json
 
+def is_not_superuser(user):
+    return not user.is_superuser
 
 def is_creator_admin(user, service):
     return service.create_by == user or user.groups.filter(name='staff').exists()
@@ -58,6 +60,7 @@ def verify_deletion_allowed(view_func):
 
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def service_detail_view(request, pk):
     service = http_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -84,6 +87,7 @@ def statushttpgraficpoint(request, pk):
 
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def create_https(request):
     if request.method == 'POST':
         form = ServiceHTTPForm(request.POST)
@@ -148,6 +152,7 @@ def check_service_http(request, pk):
 
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def view_https(request):
     if request.user.groups.filter(name='staff').exists():
         contexto = {'http_s': http_s.objects.all()}
@@ -230,6 +235,7 @@ def update_data_http(request):
 
 @login_required(login_url='login', redirect_field_name='login')
 @verify_edit_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def edit_https(request, pk):
     service = get_object_or_404(http_s, pk=pk)
     print(service.create_by)
@@ -261,6 +267,7 @@ def edit_https(request, pk):
 @require_POST
 @login_required(login_url='login', redirect_field_name='login')
 @verify_deletion_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def delete_http(request, pk):
     service = get_object_or_404(http_s, pk=pk)
     service.delete()

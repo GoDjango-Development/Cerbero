@@ -14,9 +14,11 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django.contrib.auth.decorators import login_required, user_passes_test
 
+def is_not_superuser(user):
+    return not user.is_superuser
 
 def is_creator_admin(user, service):
-    return service.create_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+    return service.create_by == user or user.groups.filter(name='staff').exists() 
 
 
 def verify_edit_allowed(view_func):
@@ -58,6 +60,7 @@ def verify_deletion_allowed(view_func):
 
 
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def list_service_tfp(request):
     if request.user.groups.filter(name = 'staff').exists():        
 
@@ -89,6 +92,7 @@ def create_service_tfp(request):
 
 
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def update_data_tfp(request):
     datos = tfp_s.objects.all()
     update = []
@@ -171,6 +175,7 @@ def check_service_tfp(request, pk):
 
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def service_detail_tfp(request, pk):
     service = tfp_s.objects.get(pk=pk)
     statuses = ServiceStatus.objects.filter(service=service)
@@ -194,6 +199,7 @@ def statustfpgraficpoint(request, pk):
 
 @login_required(login_url='login', redirect_field_name='login')
 @verify_edit_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def edit_tfp(request, pk):
     service = get_object_or_404(tfp_s, pk=pk)
     
@@ -225,6 +231,7 @@ def edit_tfp(request, pk):
 @require_POST
 @login_required(login_url='login', redirect_field_name='login')
 @verify_deletion_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def delete_tfp(request, pk):
     service = get_object_or_404(tfp_s, pk=pk)
     

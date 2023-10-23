@@ -15,8 +15,12 @@ from asgiref.sync import async_to_sync
 from django.contrib.auth.decorators import login_required, user_passes_test
 
 
+def is_not_superuser(user):
+    return not user.is_superuser
+
+
 def is_creator_admin(user, service):
-    return service.create_by == user or user.groups.filter(name='staff').exists() or user.groups.filter(name='owner').exists()
+    return service.create_by == user or user.groups.filter(name='staff').exists()
 
 
 def verify_edit_allowed(view_func):
@@ -170,6 +174,7 @@ def update_data_tcp(request):
 
 
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def list_service_tcp(request):
     if request.user.groups.filter(name = 'staff').exists():        
 
@@ -183,6 +188,7 @@ def list_service_tcp(request):
 
 @verify_edit_allowed
 @login_required(login_url='login', redirect_field_name ='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def edit_tcp(request, pk):
     service = get_object_or_404(tcp_s, pk=pk)
 
@@ -258,6 +264,7 @@ def statustcprecord(request, pk):
 @require_POST
 @login_required(login_url='login', redirect_field_name ='login')
 @verify_deletion_allowed
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def delete_tcp(request, pk):
     service = get_object_or_404(tcp_s, pk=pk)
 

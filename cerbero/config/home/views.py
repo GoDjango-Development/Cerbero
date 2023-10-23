@@ -28,16 +28,24 @@ from django.urls import reverse
 from django.http import HttpResponseRedirect
 User = get_user_model()
 
+def is_not_superuser(user):
+    return not user.is_superuser
+
+def is_superuser(user):
+    return user.is_superuser
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_not_superuser, login_url='admin_home')
 def dashboard(request):
     return render(request, 'config/dashboard.html')
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_superuser, login_url='home')
 def admin(request):
     return render(request, 'config/admin_home.html')
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_superuser, login_url='home')
 def user_list(request):
     users = User.objects.select_related('profile').all()
     return render(request,'config/userlist.html', {'users':users})
@@ -164,6 +172,7 @@ def register_user(request):
 @csrf_exempt
 @require_POST
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_superuser, login_url='home')
 def delete_user(request, pk):
     user = get_object_or_404(User, pk=pk)
     user.delete()
@@ -186,6 +195,7 @@ def account_activation(request, uidb64, token):
         return render(request, 'registration/account_activation_success.html')  
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_superuser, login_url='home')
 def create_user(request):
     user = User.objects.all()
 
@@ -213,6 +223,7 @@ def create_user(request):
     pass
 
 @login_required(login_url='login', redirect_field_name='login')
+@user_passes_test(is_superuser, login_url='home')
 def edit_user(request, pk):
     user = get_object_or_404(User, pk=pk)
 
@@ -288,6 +299,7 @@ def edit_profile(request):
         return render(request, 'config/edit_profile.html', context)
     
 @login_required(login_url='login', redirect_field_name='login')  
+@user_passes_test(is_superuser, login_url='home')
 def group_list(request):
     groups = Group.objects.all()
     return render(request,'config/listgroup.html', {'groups':groups})
