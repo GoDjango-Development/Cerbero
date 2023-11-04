@@ -80,6 +80,8 @@ def create_service_tfp(request):
             service.create_by = request.user
 
             service.processed_by = 'Esperando'
+            service.type_service = 'Servicio TFProtocol'
+
             service.save()
 
             mensaje = "Servicio guardado correctamente."

@@ -42,7 +42,9 @@ def send_test_completion_email_http(service):
     created_by_user = service.create_by
     service_name = service.name
     cant_test = service.number_probe
-      # Obtener los resultados de las pruebas
+    service_type = service.type_service
+
+    # Obtener los resultados de las pruebas
     test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
@@ -63,6 +65,7 @@ def send_test_completion_email_http(service):
     # Renderizar el contenido del correo electrónico en formato HTML
     html_content = render_to_string('email/test_completion.html', {
         'service_name': service_name,
+        'service_type' : service_type,
         'cant_test': cant_test,
         'num_up': num_up,
         'num_down': num_down,
@@ -82,43 +85,45 @@ def send_test_completion_email_http(service):
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
 
-
-     # Crear una instancia de EmailMultiAlternatives
-    msg = EmailMultiAlternatives(
-        subject='Prueba completada',
-        body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-        from_email=EMAIL_HOST_USER,
-        to=[created_by_user.email],
-    )
-    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-    
-    # Crear una instancia de MIMEImage con el contenido de la imagen
-    image = MIMEImage(image_data)
-    image.add_header('Content-ID', '<imagen>')
-    image.add_header('Content-Disposition', 'inline', filename=image_filename)
-    msg.attach(image)
-
-    # Enviar correo electrónico al usuario creador
-    msg.send()
-
-    # Enviar correo electrónico a todos los usuarios del grupo "staff"
-    for user in staff_users:
+    if last_result in ['down', 'error']:
+        # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
             subject='Prueba completada',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
-            to=[user.email],
+            to=[created_by_user.email],
         )
         msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    
+        # Crear una instancia de MIMEImage con el contenido de la imagen
+        image = MIMEImage(image_data)
+        image.add_header('Content-ID', '<imagen>')
+        image.add_header('Content-Disposition', 'inline', filename=image_filename)
         msg.attach(image)
+
+        # Enviar correo electrónico al usuario creador
         msg.send()
+
+        # Enviar correo electrónico a todos los usuarios del grupo "staff"
+        for user in staff_users:
+            msg = EmailMultiAlternatives(
+                subject='Prueba completada',
+                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+                from_email=EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+            msg.attach(image)
+            msg.send()
     
 def send_test_completion_email_tcp(service):
     created_by_user = service.create_by
     service_name = service.name
     cant_test = service.number_probe
-      # Obtener los resultados de las pruebas
-    test_results = ServiceStatusTCP.objects.filter(service=service).order_by('-timestamp')
+    service_type = service.type_service
+
+    # Obtener los resultados de las pruebas
+    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -138,6 +143,7 @@ def send_test_completion_email_tcp(service):
     # Renderizar el contenido del correo electrónico en formato HTML
     html_content = render_to_string('email/test_completion.html', {
         'service_name': service_name,
+        'service_type' : service_type,
         'cant_test': cant_test,
         'num_up': num_up,
         'num_down': num_down,
@@ -147,48 +153,55 @@ def send_test_completion_email_tcp(service):
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
+
+    
+    
     # Leer el contenido de la imagen
     with open(image_path, 'rb') as f:
         image_data = f.read()
 
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
-    # Crear una instancia de EmailMultiAlternatives
-    msg = EmailMultiAlternatives(
-        subject='Prueba completada',
-        body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-        from_email=EMAIL_HOST_USER,
-        to=[created_by_user.email],
-    )
-    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-    
-    # Crear una instancia de MIMEImage con el contenido de la imagen
-    image = MIMEImage(image_data)
-    image.add_header('Content-ID', '<imagen>')
-    image.add_header('Content-Disposition', 'inline', filename=image_filename)
-    msg.attach(image)
 
-    # Enviar correo electrónico al usuario creador
-    msg.send()
-
-    # Enviar correo electrónico a todos los usuarios del grupo "staff"
-    for user in staff_users:
+    if last_result in ['down', 'error']:
+        # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
             subject='Prueba completada',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
-            to=[user.email],
+            to=[created_by_user.email],
         )
         msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    
+        # Crear una instancia de MIMEImage con el contenido de la imagen
+        image = MIMEImage(image_data)
+        image.add_header('Content-ID', '<imagen>')
+        image.add_header('Content-Disposition', 'inline', filename=image_filename)
         msg.attach(image)
+
+        # Enviar correo electrónico al usuario creador
         msg.send()
+
+        # Enviar correo electrónico a todos los usuarios del grupo "staff"
+        for user in staff_users:
+            msg = EmailMultiAlternatives(
+                subject='Prueba completada',
+                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+                from_email=EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+            msg.attach(image)
+            msg.send()
    
 def send_test_completion_email_dns(service):
     created_by_user = service.create_by
     service_name = service.name
     cant_test = service.number_probe
-      # Obtener los resultados de las pruebas
-    test_results = ServiceStatusDNS.objects.filter(service=service).order_by('-timestamp')
+    service_type = service.type_service
+
+    # Obtener los resultados de las pruebas
+    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -208,6 +221,7 @@ def send_test_completion_email_dns(service):
     # Renderizar el contenido del correo electrónico en formato HTML
     html_content = render_to_string('email/test_completion.html', {
         'service_name': service_name,
+        'service_type' : service_type,
         'cant_test': cant_test,
         'num_up': num_up,
         'num_down': num_down,
@@ -217,49 +231,56 @@ def send_test_completion_email_dns(service):
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
+
+    
+    
     # Leer el contenido de la imagen
     with open(image_path, 'rb') as f:
         image_data = f.read()
 
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
-    # Crear una instancia de EmailMultiAlternatives
-    msg = EmailMultiAlternatives(
-        subject='Prueba completada',
-        body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-        from_email=EMAIL_HOST_USER,
-        to=[created_by_user.email],
-    )
-    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-    
-    # Crear una instancia de MIMEImage con el contenido de la imagen
-    image = MIMEImage(image_data)
-    image.add_header('Content-ID', '<imagen>')
-    image.add_header('Content-Disposition', 'inline', filename=image_filename)
-    msg.attach(image)
 
-    # Enviar correo electrónico al usuario creador
-    msg.send()
-
-    # Enviar correo electrónico a todos los usuarios del grupo "staff"
-    for user in staff_users:
+    if last_result in ['down', 'error']:
+        # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
             subject='Prueba completada',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
-            to=[user.email],
+            to=[created_by_user.email],
         )
         msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    
+        # Crear una instancia de MIMEImage con el contenido de la imagen
+        image = MIMEImage(image_data)
+        image.add_header('Content-ID', '<imagen>')
+        image.add_header('Content-Disposition', 'inline', filename=image_filename)
         msg.attach(image)
+
+        # Enviar correo electrónico al usuario creador
         msg.send()
+
+        # Enviar correo electrónico a todos los usuarios del grupo "staff"
+        for user in staff_users:
+            msg = EmailMultiAlternatives(
+                subject='Prueba completada',
+                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+                from_email=EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+            msg.attach(image)
+            msg.send()
 
 
 def send_test_completion_email_icmp(service):
     created_by_user = service.create_by
     service_name = service.name
     cant_test = service.number_probe
-      # Obtener los resultados de las pruebas
-    test_results = ServiceStatusICMP.objects.filter(service=service).order_by('-timestamp')
+    service_type = service.type_service
+
+    # Obtener los resultados de las pruebas
+    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -279,6 +300,7 @@ def send_test_completion_email_icmp(service):
     # Renderizar el contenido del correo electrónico en formato HTML
     html_content = render_to_string('email/test_completion.html', {
         'service_name': service_name,
+        'service_type' : service_type,
         'cant_test': cant_test,
         'num_up': num_up,
         'num_down': num_down,
@@ -288,48 +310,55 @@ def send_test_completion_email_icmp(service):
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
+
+    
+    
     # Leer el contenido de la imagen
     with open(image_path, 'rb') as f:
         image_data = f.read()
 
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
-    # Crear una instancia de EmailMultiAlternatives
-    msg = EmailMultiAlternatives(
-        subject='Prueba completada',
-        body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-        from_email=EMAIL_HOST_USER,
-        to=[created_by_user.email],
-    )
-    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-    
-    # Crear una instancia de MIMEImage con el contenido de la imagen
-    image = MIMEImage(image_data)
-    image.add_header('Content-ID', '<imagen>')
-    image.add_header('Content-Disposition', 'inline', filename=image_filename)
-    msg.attach(image)
 
-    # Enviar correo electrónico al usuario creador
-    msg.send()
-
-    # Enviar correo electrónico a todos los usuarios del grupo "staff"
-    for user in staff_users:
+    if last_result in ['down', 'error']:
+        # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
             subject='Prueba completada',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
-            to=[user.email],
+            to=[created_by_user.email],
         )
         msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    
+        # Crear una instancia de MIMEImage con el contenido de la imagen
+        image = MIMEImage(image_data)
+        image.add_header('Content-ID', '<imagen>')
+        image.add_header('Content-Disposition', 'inline', filename=image_filename)
         msg.attach(image)
+
+        # Enviar correo electrónico al usuario creador
         msg.send()
+
+        # Enviar correo electrónico a todos los usuarios del grupo "staff"
+        for user in staff_users:
+            msg = EmailMultiAlternatives(
+                subject='Prueba completada',
+                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+                from_email=EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+            msg.attach(image)
+            msg.send()
    
 def send_test_completion_email_trf(service):
     created_by_user = service.create_by
     service_name = service.name
     cant_test = service.number_probe
-      # Obtener los resultados de las pruebas
-    test_results = ServiceStatusTFProtocol.objects.filter(service=service).order_by('-timestamp')
+    service_type = service.type_service
+
+    # Obtener los resultados de las pruebas
+    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -349,6 +378,7 @@ def send_test_completion_email_trf(service):
     # Renderizar el contenido del correo electrónico en formato HTML
     html_content = render_to_string('email/test_completion.html', {
         'service_name': service_name,
+        'service_type' : service_type,
         'cant_test': cant_test,
         'num_up': num_up,
         'num_down': num_down,
@@ -358,41 +388,46 @@ def send_test_completion_email_trf(service):
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
+
+    
+    
     # Leer el contenido de la imagen
     with open(image_path, 'rb') as f:
         image_data = f.read()
 
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
-    # Crear una instancia de EmailMultiAlternatives
-    msg = EmailMultiAlternatives(
-        subject='Prueba completada',
-        body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-        from_email=EMAIL_HOST_USER,
-        to=[created_by_user.email],
-    )
-    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-    
-    # Crear una instancia de MIMEImage con el contenido de la imagen
-    image = MIMEImage(image_data)
-    image.add_header('Content-ID', '<imagen>')
-    image.add_header('Content-Disposition', 'inline', filename=image_filename)
-    msg.attach(image)
 
-    # Enviar correo electrónico al usuario creador
-    msg.send()
-
-    # Enviar correo electrónico a todos los usuarios del grupo "staff"
-    for user in staff_users:
+    if last_result in ['down', 'error']:
+        # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
             subject='Prueba completada',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
-            to=[user.email],
+            to=[created_by_user.email],
         )
         msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    
+        # Crear una instancia de MIMEImage con el contenido de la imagen
+        image = MIMEImage(image_data)
+        image.add_header('Content-ID', '<imagen>')
+        image.add_header('Content-Disposition', 'inline', filename=image_filename)
         msg.attach(image)
+
+        # Enviar correo electrónico al usuario creador
         msg.send()
+
+        # Enviar correo electrónico a todos los usuarios del grupo "staff"
+        for user in staff_users:
+            msg = EmailMultiAlternatives(
+                subject='Prueba completada',
+                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+                from_email=EMAIL_HOST_USER,
+                to=[user.email],
+            )
+            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+            msg.attach(image)
+            msg.send()
  
    
 @shared_task
@@ -512,7 +547,7 @@ def test_https(service, stop_flag):
                     is_up=is_up,
                     cpu_processing_time=cpu_processing_times,
                     error_message=error_messages,
-                    response_status=response_statuss
+                    response_status=response_statuss,
                 )
 
                 # Actualizar la iteración actual en la base de datos
@@ -651,7 +686,8 @@ def test_tcp(service, stop_flag):
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
-                    cpu_processing_time=cpu_processing_times
+                    cpu_processing_time=cpu_processing_times,
+
                 )
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
@@ -782,7 +818,8 @@ def test_dns(service, stop_flag):
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
-                    cpu_processing_time=cpu_processing_times
+                    cpu_processing_time=cpu_processing_times,
+
                 )
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
@@ -904,7 +941,8 @@ def test_icmp(service, stop_flag):
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
-                    cpu_processing_time=cpu_processing_times
+                    cpu_processing_time=cpu_processing_times,
+
                 )
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1
@@ -1040,7 +1078,8 @@ def test_tfp(service, stop_flag):
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
-                    cpu_processing_time=cpu_processing_times
+                    cpu_processing_time=cpu_processing_times,
+
                 )
                 # Actualizar la iteración actual en la base de datos
                 current_iteration = i + 1

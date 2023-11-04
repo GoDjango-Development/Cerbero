@@ -68,6 +68,8 @@ def create_service_icmp(request):
             service = form.save(commit=False)
             service.create_by = request.user
             service.processed_by = 'Esperando'
+            service.type_service = 'Servicio ICMP'
+
             service.save()
 
             mensaje = "Servicio guardado correctamente."

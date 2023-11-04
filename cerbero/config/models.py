@@ -25,6 +25,8 @@ class Service(models.Model):
     create_by =  models.ForeignKey(User,  on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     last_modified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True,related_name='+')
+    type_service = models.CharField( max_length=50,null=True, blank = True)
+
 
 
     class Meta:

@@ -78,6 +78,8 @@ def create_service_tcp(request):
             service.create_by = request.user
 
             service.processed_by = 'Esperando'
+            service.type_service = 'Servicio TCP'
+
             service.save()
 
             mensaje = "Servicio guardado correctamente."

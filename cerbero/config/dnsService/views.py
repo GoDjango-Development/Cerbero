@@ -68,6 +68,8 @@ def create_service_dns(request):
             service.create_by = request.user
 
             service.processed_by = 'Esperando'
+            service.type_service = 'Servicio DNS'
+
             service.save()
 
             mensaje = "Servicio guardado correctamente."
