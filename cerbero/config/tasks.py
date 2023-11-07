@@ -88,7 +88,7 @@ def send_test_completion_email_http(service):
     if last_result in ['down', 'error']:
         # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
-            subject='Prueba completada',
+            subject='Servicio HTTP ha experimentado problemas.',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
@@ -105,9 +105,9 @@ def send_test_completion_email_http(service):
         msg.send()
 
         # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users:
+        for user in staff_users and not created_by_user:
             msg = EmailMultiAlternatives(
-                subject='Prueba completada',
+                subject='Servicio HTTP ha experimentado problemas.',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
                 from_email=EMAIL_HOST_USER,
                 to=[user.email],
@@ -123,7 +123,7 @@ def send_test_completion_email_tcp(service):
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
+    test_results = ServiceStatusTCP.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -166,7 +166,7 @@ def send_test_completion_email_tcp(service):
     if last_result in ['down', 'error']:
         # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
-            subject='Prueba completada',
+            subject='Servicio TCP ha experimentado problemas.',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
@@ -183,9 +183,9 @@ def send_test_completion_email_tcp(service):
         msg.send()
 
         # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users:
+        for user in staff_users and not created_by_user:
             msg = EmailMultiAlternatives(
-                subject='Prueba completada',
+                subject='Servicio TCP ha experimentado problemas.',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
                 from_email=EMAIL_HOST_USER,
                 to=[user.email],
@@ -201,7 +201,7 @@ def send_test_completion_email_dns(service):
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
+    test_results = ServiceStatusDNS.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -244,7 +244,7 @@ def send_test_completion_email_dns(service):
     if last_result in ['down', 'error']:
         # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
-            subject='Prueba completada',
+            subject='Servicio DNS ha experimentado problemas.',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
@@ -261,9 +261,9 @@ def send_test_completion_email_dns(service):
         msg.send()
 
         # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users:
+        for user in staff_users and not created_by_user:
             msg = EmailMultiAlternatives(
-                subject='Prueba completada',
+                subject='Servicio DNS ha experimentado problemas.',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
                 from_email=EMAIL_HOST_USER,
                 to=[user.email],
@@ -272,7 +272,6 @@ def send_test_completion_email_dns(service):
             msg.attach(image)
             msg.send()
 
-
 def send_test_completion_email_icmp(service):
     created_by_user = service.create_by
     service_name = service.name
@@ -280,7 +279,7 @@ def send_test_completion_email_icmp(service):
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
+    test_results = ServiceStatusICMP.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -323,7 +322,7 @@ def send_test_completion_email_icmp(service):
     if last_result in ['down', 'error']:
         # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
-            subject='Prueba completada',
+            subject='Servicio ICMP ha experimentado problemas.',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
@@ -340,9 +339,9 @@ def send_test_completion_email_icmp(service):
         msg.send()
 
         # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users:
+        for user in staff_users and not created_by_user:
             msg = EmailMultiAlternatives(
-                subject='Prueba completada',
+                subject='Servicio ICMP ha experimentado problemas.',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
                 from_email=EMAIL_HOST_USER,
                 to=[user.email],
@@ -358,7 +357,7 @@ def send_test_completion_email_trf(service):
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
+    test_results = ServiceStatusTFProtocol.objects.filter(service=service).order_by('-timestamp')
     num_up = test_results.filter(is_up='up').count()
     print(f'num_up {num_up}')
     num_down = test_results.filter(is_up='down').count()
@@ -401,7 +400,7 @@ def send_test_completion_email_trf(service):
     if last_result in ['down', 'error']:
         # Crear una instancia de EmailMultiAlternatives
         msg = EmailMultiAlternatives(
-            subject='Prueba completada',
+            subject='Servicio TFProtocol ha experimentado problemas.',
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
@@ -420,7 +419,7 @@ def send_test_completion_email_trf(service):
         # Enviar correo electrónico a todos los usuarios del grupo "staff"
         for user in staff_users:
             msg = EmailMultiAlternatives(
-                subject='Prueba completada',
+                subject='Servicio TFProtocol ha experimentado problemas.',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
                 from_email=EMAIL_HOST_USER,
                 to=[user.email],
