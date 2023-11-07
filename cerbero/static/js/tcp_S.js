@@ -15,7 +15,7 @@ $(document).ready(function () {
     });
 
     //Evento del boton eliminar .eliminar-btn
-    $(document).on('click', '.iniciar-monitoreo-btn', function () {
+    $(document).on('click', '.eliminar-btn', function (event) {
         var objetoId = $(this).data('objeto-id');
 
         event.preventDefault();
