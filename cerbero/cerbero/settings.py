@@ -88,13 +88,15 @@ TEMPLATES = [
 SESSION_EXPIRE_SECONDS = 3600  # 1 hora
 SESSION_TIMEOUT_REDIRECT = 'login'
 SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+SESSION_COOKIE_SECURE = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 3600  # Tiempo de expiración de la sesión en segundos
 
 ASGI_APPLICATION = "cerbero.asgi.application"
 
 
 ASGI_MIDDLEWARE = [
     'cerbero.middleware.SessionClearMiddleware',
-    'cerbero.middleware.InactividadMiddleware',
 
 
 ]

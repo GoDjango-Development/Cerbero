@@ -20,6 +20,7 @@ import config.home.views
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
+from config.views import check_services
 
 
 urlpatterns = [
@@ -35,8 +36,10 @@ urlpatterns = [
     path('cerbero/admin/usercreate/', config.home.views.create_user , name='createuser'),
     path('logout/', config.home.views.logout_view , name='logout'),
     path('confirmar/<str:uidb64>/<str:token>/', config.home.views.account_activation, name='account_activation'),
+    path('confirmar/celery/', check_services, name='check_services'),
     path('cerbero/admin/grouplist/', config.home.views.group_list , name='group_list'),
     path('services/', include('config.urls')),
+     # Otras rutas de tu aplicación
     re_path(r'^media/(?P<path>.*)$', serve,{'document_root': settings.MEDIA_ROOT}),
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 

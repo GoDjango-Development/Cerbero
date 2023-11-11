@@ -3,8 +3,9 @@ import time
 import httplib2
 import socket
 from django.utils import timezone
-from django.shortcuts import get_object_or_404
-from django.core.mail import send_mail, EmailMultiAlternatives
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.mail import  EmailMultiAlternatives
 from email.mime.image import MIMEImage
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
@@ -35,6 +36,11 @@ stop_flags_lock = Lock()
 # Bloqueo adicional para sincronizar las actualizaciones de las banderas de detención
 stop_flags_update_lock = Lock()
 test_status = Lock()
+
+
+
+
+
 
 
 

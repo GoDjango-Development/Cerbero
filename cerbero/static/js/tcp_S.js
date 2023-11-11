@@ -1,18 +1,66 @@
 //Crear una conexión WebSocket
 let url = "ws://" + window.location.host + "/ws/buttons/";
 const socket = new WebSocket(url);
-// var socket = new WebSocket("ws://" + window.location.host + "/ruta-websocket");
 
 
 $(document).ready(function () {
     // Crear la tabla con DataTables
-    var table = $('#data').DataTable({
+    $('#data').DataTable({
         drawCallback: function () {
             // Restaurar el estado de reproducción al cambiar de página
             restoreButtonStates();
         }
-
     });
+
+    var celeryActivo = false; // Variable para controlar el estado de Celery
+
+    function obtenerEstadoCelery() {
+        // Deshabilitar el botón mientras se obtiene el estado de Celery
+        $('.monitoreo-btn').prop('disabled', true);
+
+        $.ajax({
+            url: '/confirmar/celery/',
+            type: 'GET',
+            success: function (response) {
+                isCeleryRunning = response.isCeleryRunning;
+                isRedisRunning = response.isRedisRunning;
+
+                if (isCeleryRunning && isRedisRunning) {
+                    celeryActivo = true;
+                    $('.monitoreo-btn').prop('disabled', false);
+                    $('.monitoreo-btn').attr('title', ''); // Borrar el título del botón si ambos servicios están activos
+                } else {
+                    celeryActivo = false;
+                    $('.monitoreo-btn').prop('disabled', true);
+                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Redis y Celery');
+                }
+            },
+            error: function (xhr) {
+                console.error('Error al obtener el estado de Celery:', xhr);
+                celeryActivo = false;
+                $('.monitoreo-btn').prop('disabled', true);
+                $('.monitoreo-btn').attr('title', 'Error al obtener el estado de Celery');
+            },
+            complete: function () {
+                // Habilitar el botón nuevamente al completar la solicitud AJAX
+                $('.monitoreo-btn').prop('disabled', !celeryActivo);
+            }
+        });
+    }
+
+    // Llamar a la función para obtener el estado de Celery al cargar la página
+    setInterval(obtenerEstadoCelery, 1000); // Llamar a la función cada 1 segundo
+
+    // Manejar el evento de clic del botón de monitoreo
+    $('.monitoreo-btn').click(function () {
+        if (!celeryActivo) {
+            alert('Debe iniciar el servidor de Redis y Celery antes de realizar la acción de monitoreo.');
+            return;
+        }
+
+        
+    });
+
 
     //Evento del boton eliminar .eliminar-btn
     $(document).on('click', '.eliminar-btn', function (event) {
@@ -69,6 +117,8 @@ $(document).ready(function () {
         }
     });
 
+
+
     //Evento del boton de monitioreo
     $(document).on('click', '.iniciar-monitoreo-btn', function () {
         var btn = $(this);
@@ -84,8 +134,10 @@ $(document).ready(function () {
         actualizarEstadoEnServidor(serviceId, newState);
     });
 
-    // Obtener el estado almacenado en el atributo data y en el almacenamiento local
+
+
     function restoreButtonStates() {
+        // Obtener el estado almacenado en el atributo data y en el almacenamiento local
         $('.iniciar-monitoreo-btn').each(function () {
             var btn = $(this);
             var serviceId = btn.data('service-id');
@@ -96,7 +148,9 @@ $(document).ready(function () {
             actualizarBoton(serviceId, buttonState);
 
         });
+
     }
+
 
     // Evento WebSocket: Cuando se recibe un mensaje del servidor
     socket.onmessage = function (event) {
@@ -105,13 +159,12 @@ $(document).ready(function () {
 
         var pk = text.pk
         var buttonState = text.buttonState
-        console.log('pk:', text.pk);
-        console.log('este es el pk' + pk);
-        console.log('buttonState:', text.buttonState);
+
 
         actualizarBoton(pk, buttonState);
 
     };
+
 });
 
 // Actualizar columnas de estados y procesos
@@ -143,12 +196,14 @@ function actualizarColumnas() {
 // Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
 setInterval(actualizarColumnas, 1000);
 
+
+
 function actualizarBoton(serviceId, iniciarMonitoreo) {
     var btn = $('[data-service-id="' + serviceId + '"]');
     if (iniciarMonitoreo) {
-        btn.html('<i class="fas fa-pause"></i>');
+        btn.find('i').removeClass('fa-play').addClass('fa-pause');
     } else {
-        btn.html('<i class="fas fa-play"></i>');
+        btn.find('i').removeClass('fa-pause').addClass('fa-play');
     }
     // Actualizar el atributo data-button-state
     btn.data('button-state', iniciarMonitoreo.toString());
@@ -184,8 +239,6 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
-
-
 // actualizar estado en el servidor del incio o detencion del monitoreo
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
@@ -231,6 +284,8 @@ function getCookie(name) {
     return cookieValue;
 
 }
+
+
 
 
 
