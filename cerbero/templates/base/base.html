@@ -123,7 +123,6 @@
             var currentServerStatus = !redisStatus || !celeryStats
             if (currentServerStatus && !previousServerStatus) {
               // Recarga la página automáticamente si los servidores se caen por primera vez
-              location.reload(true)
             }
       
             // Actualiza el estado anterior de los servidores
