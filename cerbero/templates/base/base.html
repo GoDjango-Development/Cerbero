@@ -135,11 +135,13 @@
         })
       }
       
-      // Realiza la verificación del estado cada 20 segundos (ajusta el intervalo según tus necesidades)
-      setInterval(checkServerStatus, 20000)
+      
       
       // Verifica el estado inicial al cargar la página
       checkServerStatus()
+
+      // Realiza la verificación del estado cada 20 segundos (ajusta el intervalo según tus necesidades)
+      setInterval(checkServerStatus, 20000)
     </script>
 
     <!-- Functions -->
