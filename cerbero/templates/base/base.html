@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta http-equiv="x-ua-compatible" content="ie=edge" />
-    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png"  />
+    <link rel="icon" href="{% static 'img/logo.png' %}" type="image/png" />
     <title>
       {% block title %}
 
@@ -38,8 +38,109 @@
     <script src="{% static 'lib/datatables-1.10.20/plugins/responsive-2.2.3/js/responsive.bootstrap4.min.js' %}"></script>
     <style></style>
     <script src="{% static 'lib/adminlte-3.1.0/js/adminlte.min.js' %}"></script>
-    
-   
+
+    <script>
+      // Obtiene el estado almacenado en el almacenamiento local
+      var isRedisDown = localStorage.getItem('redisDown') === 'true'
+      var isCeleryDown = localStorage.getItem('celeryDown') === 'true'
+      // Variable para almacenar el estado de la alerta de éxito de Celery
+      var celeryAlertShown = localStorage.getItem('celeryAlertShown') === 'false'
+      // Variable para realizar un seguimiento del estado anterior de los servidores
+      var previousServerStatus = isRedisDown || isCeleryDown
+      
+      // Función para mostrar la alerta de Redis
+      function showRedisAlert() {
+        // Elimina las alertas existentes
+        $('.alertContainerRedis .alert').remove()
+      
+        var redisAlert = $('<div>').addClass('alert').addClass('alert-danger').attr('role', 'alert')
+        redisAlert.html('El servidor Redis está caído')
+        $('.alertContainerRedis').append(redisAlert)
+      }
+      
+      // Función para mostrar la alerta de Celery
+      function showCeleryAlert() {
+        // Elimina las alertas existentes
+        $('.alertContainerCelery .alert').remove()
+      
+        var celeryAlert = $('<div>').addClass('alert').addClass('alert-danger').attr('role', 'alert')
+        celeryAlert.html('El servidor Celery está caído')
+        $('.alertContainerCelery').append(celeryAlert)
+      }
+      
+      // Función para mostrar la alerta de éxito de Celery
+      function showCelerySuccessAlert() {
+        // Verifica si la alerta ya ha sido mostrada
+        if (celeryAlertShown) {
+          return
+        }
+      
+        $('.alertContainerCelery').empty()
+      
+        var celerySuccessAlert = $('<div>').addClass('alert').addClass('alert-success').attr('role', 'alert')
+        celerySuccessAlert.html('¡El servidor Celery se ha activado! Recargue la página para continuar')
+        var closeButton = $('<button>').addClass('close').attr('type', 'button').attr('data-dismiss', 'alert').attr('aria-label', 'Close')
+        closeButton.html('<span aria-hidden="true">&times;</span>')
+        celerySuccessAlert.append(closeButton)
+      
+        $('.alertContainerCelery').append(celerySuccessAlert)
+      
+        // Establece el temporizador para ocultar la alerta después de 5 segundos (ajusta el tiempo según tus necesidades)
+        setTimeout(function () {
+          celerySuccessAlert.alert('close') // Oculta la alerta
+        }, 5000)
+      
+        // Actualiza el estado de la alerta para indicar que ha sido mostrada
+        celeryAlertShown = true
+        // Almacena el estado en el almacenamiento local
+        localStorage.setItem('celeryAlertShown', 'true')
+      }
+      // Función para verificar el estado actual
+      function checkServerStatus() {
+        $.ajax({
+          url: '/confirmar/celery/',
+          dataType: 'json',
+          success: function (data) {
+            var redisStatus = data.redisStatus
+            var celeryStats = data.celeryStats
+      
+            // Actualiza la alerta de Redis si es necesario
+            if (redisStatus) {
+              $('.alertContainerRedis .alert').remove()
+            } else {
+              showRedisAlert()
+            }
+      
+            // Actualiza la alerta de Celery si es necesario
+            if (celeryStats && redisStatus ) {
+              $('.alertContainerCelery .alert').remove()
+              showCelerySuccessAlert()
+            } else {
+              showCeleryAlert()
+            }
+      
+            // Verifica si los servidores están caídos
+            var currentServerStatus = !redisStatus || !celeryStats
+            if (currentServerStatus && !previousServerStatus) {
+              // Recarga la página automáticamente si los servidores se caen por primera vez
+              location.reload(true)
+            }
+      
+            // Actualiza el estado anterior de los servidores
+            previousServerStatus = currentServerStatus
+          },
+          error: function (error) {
+            console.error('Error al obtener el estado de los servicios:', error)
+          }
+        })
+      }
+      
+      // Realiza la verificación del estado cada 5 segundos (ajusta el intervalo según tus necesidades)
+      setInterval(checkServerStatus, 5000)
+      
+      // Verifica el estado inicial al cargar la página
+      checkServerStatus()
+    </script>
 
     <!-- Functions -->
     <!-- Block head -->

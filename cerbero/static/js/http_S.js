@@ -11,6 +11,9 @@ $(document).ready(function () {
             restoreButtonStates();
         }
     });
+   
+
+
 
     var celeryActivo = false; // Variable para controlar el estado de Celery
 
@@ -49,8 +52,7 @@ $(document).ready(function () {
     }
 
     // Llamar a la función para obtener el estado de Celery al cargar la página
-    setInterval(obtenerEstadoCelery, 5000); // Llamar a la función cada 1 segundo
-
+    obtenerEstadoCelery()
     // Manejar el evento de clic del botón de monitoreo
     $('.monitoreo-btn').click(function () {
         if (!celeryActivo) {
@@ -58,7 +60,7 @@ $(document).ready(function () {
             return;
         }
 
-        
+
     });
 
     //Evento del boton eliminar .eliminar-btn

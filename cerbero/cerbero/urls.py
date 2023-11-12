@@ -21,7 +21,12 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.static import serve
 from config.views import check_services
+from django.views.defaults import page_not_found
+from django.conf.urls import handler404, handler500
 
+
+handler404 = 'config.home.views.error_404'
+#handler403 = ''
 
 urlpatterns = [
     path('inicio/', config.home.views.dashboard , name='home'),
@@ -44,5 +49,7 @@ urlpatterns = [
     re_path(r'^static/(?P<path>.*)$', serve,{'document_root': settings.STATIC_ROOT}),
 
 ]
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+if settings.DEBUG == True:
+    urlpatterns +=[
+        re_path(r'^404/$', config.home.views.error_404, {'exception': Exception()}),
+    ]

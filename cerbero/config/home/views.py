@@ -304,3 +304,14 @@ def group_list(request):
     return render(request,'config/listgroup.html', {'groups':groups})
 
 
+
+
+#404: página no encontrada
+def error_404(request, exception):
+    if request.user.is_authenticated:
+         
+        return render(request, 'base/404.html')
+    return redirect('login')
+
+
+

@@ -1,7 +1,15 @@
 from django.http import JsonResponse
+from django.template import RequestContext
 from django.views.decorators.csrf import csrf_exempt
 import redis
 from cerbero.celery import app
+from typing import re
+
+from django.contrib import messages
+from django.shortcuts import render, get_object_or_404
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from django.contrib.auth.decorators import login_required
 
 
 @csrf_exempt
@@ -14,7 +22,10 @@ def check_services(request):
 
     return JsonResponse({
         'isRedisRunning': is_redis_running,
-        'isCeleryRunning': is_celery_running
+        'isCeleryRunning': is_celery_running,
+        'redisStatus' : is_redis_running,
+        'celeryStats' : is_celery_running
+        
     })
 
 def check_redis():
@@ -39,3 +50,6 @@ def check_celery():
         return True
     except Exception:
         return False
+    
+    
+    

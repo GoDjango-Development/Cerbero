@@ -5,21 +5,21 @@
 {% block head_list %}
 <script src="{% static 'js/dns_S.js' %}"></script>
 {% if messages %}
-  <script>
-    $(document).ready(function() {
-      {% for message in messages %}
-        {% if message.tags %}
-          {% if 'create' or 'edit' in message.tags %}
-            toastr.success("{{ message }}");
-          {% else %}
-            toastr.warning("{{ message }}");
-          {% endif %}
-        {% else %}
-          toastr.error("{{ message }}");
-        {% endif %}
-      {% endfor %}
-    });
-  </script>
+<script>
+  $(document).ready(function () {
+    {% for message in messages %}
+    {% if message.tags %}
+    {% if 'create' or 'edit' in message.tags %}
+    toastr.success("{{ message }}");
+    {% else %}
+    toastr.warning("{{ message }}");
+    {% endif %}
+    {% else %}
+    toastr.error("{{ message }}");
+    {% endif %}
+    {% endfor %}
+  });
+</script>
 {% endif %}
 
 
@@ -32,20 +32,30 @@ Listado de servicios DNS | Cerbero
 
 {% block title_list %}
 Listado de servicios DNS
+
+<div class="row">
+  <div class="col-xl-12">
+    <div class="alertContainerRedis"></div>
+  </div>
+  <div class="col-xl-12">
+    <div class="alertContainerCelery"></div>
+  </div>
+  
+</div>
 {% endblock %}
 
 {% block columns %}
 <tr>
-    <th>Nombre</th>
-    <th>IP</th>
-    <th>Puerto</th>
-    <th>Número de pruebas</th>
-    <th>Tiempo por pruebas</th>
-    <th>Estado</th>
-    <th>En Progreso</th>
-    <th>Creado por</th>
-    <th>Ultima Modificación</th>
-    <th>Opciones</th>
+  <th>Nombre</th>
+  <th>IP</th>
+  <th>Puerto</th>
+  <th>Número de pruebas</th>
+  <th>Tiempo por pruebas</th>
+  <th>Estado</th>
+  <th>En Progreso</th>
+  <th>Creado por</th>
+  <th>Ultima Modificación</th>
+  <th>Opciones</th>
 </tr>
 
 {% endblock %}
@@ -53,63 +63,64 @@ Listado de servicios DNS
 {% block rows %}
 {% for dns in dns_s %}
 <tr>
-    <td scope="col" style="width: 20%;">{{ dns.name}}</td>
-    <td scope="col" style="width: 15%;">{{ dns.ip_address}}</a></td>
-    <td scope="col" style="width: 15%;">{{ dns.port}}</td>
-    <td scope="col" style="width: 15%;">{{ dns.number_probe}}</td>
-    <td scope="col" style="width: 15%;">{{ dns.probe_timeout}}</td>
-    <td scope="col" style="width: 3%;" id="status_{{dns.id}}" class="">
+  <td scope="col" style="width: 20%;">{{ dns.name}}</td>
+  <td scope="col" style="width: 15%;">{{ dns.ip_address}}</a></td>
+  <td scope="col" style="width: 15%;">{{ dns.port}}</td>
+  <td scope="col" style="width: 15%;">{{ dns.number_probe}}</td>
+  <td scope="col" style="width: 15%;">{{ dns.probe_timeout}}</td>
+  <td scope="col" style="width: 3%;" id="status_{{dns.id}}" class="">
     {% if dns.status == 'up' %}
-        <i class="fas fa-circle" style="color: green;"></i>
-    {% elif dns.status == 'down' %} 
-        <i class="fas fa-circle" style="color: red;"></i>
-    {% elif dns.status == 'error' %} 
-        <i class="fas fa-circle " style="color: yellow;"></i>
+    <i class="fas fa-circle" style="color: green;"></i>
+    {% elif dns.status == 'down' %}
+    <i class="fas fa-circle" style="color: red;"></i>
+    {% elif dns.status == 'error' %}
+    <i class="fas fa-circle " style="color: yellow;"></i>
     {% else %}
     {% endif %}
-    </td>
-    <td scope="col" style="width: 15%;" id="process_{{dns.id}}">
-    
-    {% if dns.processed_by == 'Terminado' %}
-        <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif  dns.processed_by == 'Detenido'%} 
-        <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
-    {% elif dns.processed_by == 'Monitoreando' %}
-        <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
-    {% else %}
-    {% endif %}
-    </td>
-    <td scope="col" style="width: 15%;">{{ dns.create_by }}</td>
-    <td scope="col" style="width: 15%;">{{ dns.last_modified_by }}</td>
+  </td>
+  <td scope="col" style="width: 15%;" id="process_{{dns.id}}">
 
-    <td scope="col" style="width: 10%;">
-        <div class="row">
-            <div class="col-12 col-sm-6 mb-1 ">
-                <a href="{% url 'edit_dns' dns.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
-                    title="Editar Registro" data-in-processed ="{{ dns.processed_by }}"><i class="fas fa-edit"></i></a>
-            </div>
-            <div class="col-12 col-sm-6">
-                <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block monitoreo-btn"
-                    title="Monitorear el servicio" data-service-id="{{ dns.id }}"
-                    data-in-processed-by="{{ dns.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
-            </div>
-            <div class="col-12 col-sm-6 mb-1 ">
-                <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"  data-objeto-id="{{dns.id }}" data-processed="{{ dns.processed_by }}"><i class="fas fa-trash-alt"></i></button>
-            </div>
-            <div class="col-12 col-sm-6">
-                <a href="{% url 'service_detail_dns' dns.id %}" type="button"
-                    class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
-                        class="fas fa-eye"></i></a>
-            </div>
-        </div>
-    </td>
+    {% if dns.processed_by == 'Terminado' %}
+    <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
+    {% elif dns.processed_by == 'Detenido'%}
+    <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
+    {% elif dns.processed_by == 'Monitoreando' %}
+    <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
+    {% else %}
+    {% endif %}
+  </td>
+  <td scope="col" style="width: 15%;">{{ dns.create_by }}</td>
+  <td scope="col" style="width: 15%;">{{ dns.last_modified_by }}</td>
+
+  <td scope="col" style="width: 10%;">
+    <div class="row">
+      <div class="col-12 col-sm-6 mb-1 ">
+        <a href="{% url 'edit_dns' dns.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+          title="Editar Registro" data-in-processed="{{ dns.processed_by }}"><i class="fas fa-edit"></i></a>
+      </div>
+      <div class="col-12 col-sm-6">
+        <button class="iniciar-monitoreo-btn rounded btn btn-success btn-sm btn-flat btn-block monitoreo-btn"
+          title="Monitorear el servicio" data-service-id="{{ dns.id }}" data-in-processed-by="{{ dns.processed_by }}"
+          name="service_id"><i class="fas fa-play"></i></button>
+      </div>
+      <div class="col-12 col-sm-6 mb-1 ">
+        <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+          title="Eliminar Registro" data-objeto-id="{{dns.id }}" data-processed="{{ dns.processed_by }}"><i
+            class="fas fa-trash-alt"></i></button>
+      </div>
+      <div class="col-12 col-sm-6">
+        <a href="{% url 'service_detail_dns' dns.id %}" type="button"
+          class="rounded btn btn-info btn-sm btn-flat btn-block" title="Detalle de Registro"><i
+            class="fas fa-eye"></i></a>
+      </div>
+    </div>
+  </td>
 </tr>
 {% endfor %}
 {% endblock %}
 {% block buttons_list %}
 <a href="{%url 'create_dns'%}" class="btn btn-primary btn-flat btnTest">
-    <i class="fas fa-plus"></i> Nuevo registro
+  <i class="fas fa-plus"></i> Nuevo registro
 </a>
 
 {% endblock %}
