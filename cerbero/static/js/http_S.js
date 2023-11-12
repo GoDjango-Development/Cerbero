@@ -28,7 +28,7 @@ $(document).ready(function () {
                 isCeleryRunning = response.isCeleryRunning;
                 isRedisRunning = response.isRedisRunning;
 
-                if (isCeleryRunning && isRedisRunning) {
+                if (isCeleryRunning || isRedisRunning) {
                     celeryActivo = true;
                     $('.monitoreo-btn').prop('disabled', false);
                     $('.monitoreo-btn').attr('title', ''); // Borrar el título del botón si ambos servicios están activos
