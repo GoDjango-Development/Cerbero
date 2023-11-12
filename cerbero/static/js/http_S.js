@@ -3,17 +3,15 @@ let url = "ws://" + window.location.host + "/ws/buttons/";
 const socket = new WebSocket(url);
 
 
+
 $(document).ready(function () {
     // Crear la tabla con DataTables
-    $('#data').DataTable({
+    var table = $('#data').DataTable({
         drawCallback: function () {
             // Restaurar el estado de reproducción al cambiar de página
             restoreButtonStates();
         }
     });
-   
-
-
 
     var celeryActivo = false; // Variable para controlar el estado de Celery
 
@@ -26,17 +24,34 @@ $(document).ready(function () {
             type: 'GET',
             success: function (response) {
                 isCeleryRunning = response.isCeleryRunning;
+                console.log('estado del servidor celery' + isCeleryRunning)
                 isRedisRunning = response.isRedisRunning;
+                console.log('estado del servidor redis' + isRedisRunning)
 
-                if (isCeleryRunning || isRedisRunning) {
+                if (isCeleryRunning) {
                     celeryActivo = true;
                     $('.monitoreo-btn').prop('disabled', false);
-                    $('.monitoreo-btn').attr('title', ''); // Borrar el título del botón si ambos servicios están activos
+                    console.log(btn.data('in-processed-by'));
+
                 } else {
                     celeryActivo = false;
                     $('.monitoreo-btn').prop('disabled', true);
-                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Redis y Celery');
+                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
                 }
+
+                if (isRedisRunning) {
+                    celeryActivo = true;
+                    $('.monitoreo-btn').prop('disabled', false);
+
+                    
+                } else {
+                    celeryActivo = false;
+                    $('.monitoreo-btn').prop('disabled', true);
+                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
+                }
+                
+
+                
             },
             error: function (xhr) {
                 console.error('Error al obtener el estado de Celery:', xhr);
@@ -52,7 +67,7 @@ $(document).ready(function () {
     }
 
     // Llamar a la función para obtener el estado de Celery al cargar la página
-    obtenerEstadoCelery()
+    obtenerEstadoCelery();
     // Manejar el evento de clic del botón de monitoreo
     $('.monitoreo-btn').click(function () {
         if (!celeryActivo) {
@@ -118,16 +133,15 @@ $(document).ready(function () {
         }
     });
 
+   
 
 
     //Evento del boton de monitioreo
     $(document).on('click', '.iniciar-monitoreo-btn', function () {
         var btn = $(this);
         var serviceId = btn.data('service-id');
-        console.log(serviceId);
         var currentState = btn.data('button-state');
         var newState = currentState === 'true' ? 'false' : 'true';
-        console.log(newState);
         // Realizar el cambio visual inmediato
         actualizarBoton(serviceId, newState === 'true');
 
@@ -137,8 +151,9 @@ $(document).ready(function () {
 
 
 
+
+    // Obtener el estado almacenado en el atributo data y en el almacenamiento local
     function restoreButtonStates() {
-        // Obtener el estado almacenado en el atributo data y en el almacenamiento local
         $('.iniciar-monitoreo-btn').each(function () {
             var btn = $(this);
             var serviceId = btn.data('service-id');
@@ -149,8 +164,11 @@ $(document).ready(function () {
             actualizarBoton(serviceId, buttonState);
 
         });
-
     }
+
+
+
+
 
 
     // Evento WebSocket: Cuando se recibe un mensaje del servidor
@@ -160,13 +178,13 @@ $(document).ready(function () {
 
         var pk = text.pk
         var buttonState = text.buttonState
-
-
+        
         actualizarBoton(pk, buttonState);
 
     };
 
 });
+
 
 // Actualizar columnas de estados y procesos
 function actualizarColumnas() {
@@ -175,18 +193,15 @@ function actualizarColumnas() {
         type: "GET",
         dataType: "json",
         success: function (data) {
-            console.log("Datos recibidos:", data);
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
             $.each(data, function (index, elemento) {
                 var serviceId = elemento.id; // Obtén el ID del servicio
-                console.log("ID del servicio:", serviceId);
 
                 // Actualiza las columnas utilizando el ID del servicio
                 $("#status_" + serviceId).html(elemento.status);
                 $("#process_" + serviceId).html(elemento.processed_by);
             });
 
-            console.log("Primer elemento de los datos:", data[0]);
         },
         error: function (xhr, status, error) {
             console.error("Error al obtener los datos:", error);
@@ -202,14 +217,13 @@ setInterval(actualizarColumnas, 1000);
 function actualizarBoton(serviceId, iniciarMonitoreo) {
     var btn = $('[data-service-id="' + serviceId + '"]');
     if (iniciarMonitoreo) {
-        btn.find('i').removeClass('fa-play').addClass('fa-pause');
+        btn.html('<i class="fas fa-pause"></i>');
     } else {
-        btn.find('i').removeClass('fa-pause').addClass('fa-play');
+        btn.html('<i class="fas fa-play"></i>');
     }
     // Actualizar el atributo data-button-state
     btn.data('button-state', iniciarMonitoreo.toString());
     // Verificar si el valor de data es "Terminado" y deshabilitar el botón
-    console.log(btn.data('in-processed-by'));
     if (btn.data('in-processed-by') === 'Terminado') {
         btn.prop('disabled', true);
         btn.find('i').removeClass('fa-pause').addClass('fa-ban');
@@ -227,7 +241,6 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
         };
         // Enviar el mensaje actualizado a través del WebSocket
         socket.send(JSON.stringify(message));
-        console.log("Mensaje enviado al servidor:", message);
     } else {
         console.error("El WebSocket no está en un estado válido para enviar mensajes.");
     }
@@ -237,9 +250,14 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
         console.log('Conexión WebSocket abierta');
     };
 
+
+
+
+
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
+
 // actualizar estado en el servidor del incio o detencion del monitoreo
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
@@ -251,13 +269,12 @@ function actualizarEstadoEnServidor(serviceId, newState) {
             'action': newState === 'true' ? 'iniciar' : 'detener'
         },
         success: function (response) {
-            console.log(response.message);
             toastr.success(response.message)
             // No se requiere hacer nada aquí, el cambio en el servidor ya se realizó
 
         },
         error: function (xhr, status, error) {
-            console.error('Error al actualizar el monitoreo:', error);
+            toastr.error('Error al actualizar el monitoreo:', error);
 
             // Revertir el cambio visual en caso de error
             var currentState = newState === 'true' ? 'false' : 'true';
@@ -265,6 +282,7 @@ function actualizarEstadoEnServidor(serviceId, newState) {
         }
     });
 }
+
 // Guardar estados locales en la pc de como esta los botones
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());
@@ -285,6 +303,9 @@ function getCookie(name) {
     return cookieValue;
 
 }
+
+
+
 
 
 

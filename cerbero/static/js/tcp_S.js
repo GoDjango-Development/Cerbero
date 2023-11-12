@@ -12,6 +12,7 @@ $(document).ready(function () {
         }
     });
 
+
     var celeryActivo = false; // Variable para controlar el estado de Celery
 
     function obtenerEstadoCelery() {
@@ -23,17 +24,44 @@ $(document).ready(function () {
             type: 'GET',
             success: function (response) {
                 isCeleryRunning = response.isCeleryRunning;
+                console.log('estado del servidor celery' + isCeleryRunning)
                 isRedisRunning = response.isRedisRunning;
+                console.log('estado del servidor redis' + isRedisRunning)
 
-                if (isCeleryRunning || isRedisRunning) {
+                if (isCeleryRunning) {
                     celeryActivo = true;
                     $('.monitoreo-btn').prop('disabled', false);
-                    $('.monitoreo-btn').attr('title', ''); // Borrar el título del botón si ambos servicios están activos
+
                 } else {
                     celeryActivo = false;
                     $('.monitoreo-btn').prop('disabled', true);
-                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Redis y Celery');
+                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
                 }
+
+                if (isRedisRunning) {
+                    celeryActivo = true;
+                    $('.monitoreo-btn').prop('disabled', false);
+                } else {
+                    celeryActivo = false;
+                    $('.monitoreo-btn').prop('disabled', true);
+                    $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
+                }
+
+                // Acceder al valor de data-in-processed-by de cada botón
+                $('.monitoreo-btn').each(function () {
+                    var inProcessedBy = $(this).attr('data-in-processed-by');
+                    console.log('Valor de data-in-processed-by:', inProcessedBy);
+
+                    // Realizar alguna acción basada en el valor de data-in-processed-by
+                    if (inProcessedBy === 'terminado') {
+                        console.log('Valor de data-in-processed-by fue terminado:', inProcessedBy);
+                        inProcessedBy.prop('disabled', true);
+                        inProcessedBy.find('i').addClass('fa-ban');
+                        inProcessedBy.attr('title', 'Monitoreo concluido');
+
+                    }
+                });
+
             },
             error: function (xhr) {
                 console.error('Error al obtener el estado de Celery:', xhr);
@@ -49,7 +77,7 @@ $(document).ready(function () {
     }
 
     // Llamar a la función para obtener el estado de Celery al cargar la página
-    obtenerEstadoCelery(); 
+    obtenerEstadoCelery();
 
     // Manejar el evento de clic del botón de monitoreo
     $('.monitoreo-btn').click(function () {
@@ -58,7 +86,7 @@ $(document).ready(function () {
             return;
         }
 
-        
+
     });
 
 

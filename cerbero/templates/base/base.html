@@ -102,8 +102,10 @@
           dataType: 'json',
           success: function (data) {
             var redisStatus = data.redisStatus
+            console.log(redisStatus)
             var celeryStats = data.celeryStats
-      
+            console.log(celeryStats)
+
             // Actualiza la alerta de Redis si es necesario
             if (redisStatus) {
               $('.alertContainerRedis .alert').remove()
@@ -112,7 +114,7 @@
             }
       
             // Actualiza la alerta de Celery si es necesario
-            if (celeryStats && redisStatus ) {
+            if (celeryStats) {
               $('.alertContainerCelery .alert').remove()
               showCelerySuccessAlert()
             } else {
