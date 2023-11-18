@@ -38,12 +38,6 @@ stop_flags_update_lock = Lock()
 test_status = Lock()
 
 
-
-
-
-
-
-
 def send_test_completion_email_http(service):
     created_by_user = service.create_by
     service_name = service.name
@@ -575,6 +569,9 @@ def test_https(service, stop_flag):
                 stop_flags_http.pop(service.pk, None)
 
 
+
+
+
 @shared_task
 def monitoreo_tcp_services(pk, resume=False):
     # Obtener el servicio de la base de datos
@@ -617,11 +614,9 @@ def test_tcp(service, stop_flag):
     port = service.port
     num_of_tests = service.number_probe
     test_duration = service.probe_timeout
-
     try:
         service.in_process = True
         service.save()
-
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
         while True:
@@ -633,7 +628,6 @@ def test_tcp(service, stop_flag):
                     service.current_iteration = current_iteration
                     service.save()
                     break
-
             try:
                 start_time = time.time()
                 service.processed_by = 'Monitoreando'
@@ -658,8 +652,6 @@ def test_tcp(service, stop_flag):
             timestamp = timezone.now()
 
 
-            service.status = result
-            service.save()
 
             is_up = result
             ServiceStatusTCP.objects.create(
@@ -860,7 +852,7 @@ def test_icmp(service, stop_flag):
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
         while True:
-            # Comprobar si se ha activado la bandera de detención
+                # Comprobar si se ha activado la bandera de detención
             if stop_flag.is_set():
                 with test_status:
                     service.in_process = False  # Establecer el estado in_process en False
@@ -868,7 +860,6 @@ def test_icmp(service, stop_flag):
                     service.current_iteration = current_iteration
                     service.save()
                     break
-
 
             try:
                 start_time = time.time()
@@ -882,18 +873,22 @@ def test_icmp(service, stop_flag):
                 end_time = time.time()
                 cpu_processing_times = end_time - start_time
             except Exception as e:
-                print(f"Error de conexión: {str(e)}")
-                result = "down"
-                cpu_processing_times = 0
-                test_results.append(result)
-                service.status = result
-                service.save()
-                timestamp = timezone.now()
-                service.status = result
-                service.save()
+                    start_time = time.time()
 
-                is_up = result
-                ServiceStatusICMP.objects.create(
+                    print(f"Error de conexión: {str(e)}")
+                    result = "down"
+                    end_time = time.time()
+                    cpu_processing_times = end_time - start_time                
+            test_results.append(result)
+            service.status = result
+            service.save()
+            timestamp = timezone.now()
+            is_up = result
+            service.status = result
+            service.save()
+
+            is_up = result
+            ServiceStatusICMP.objects.create(
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
@@ -921,6 +916,7 @@ def test_icmp(service, stop_flag):
             with stop_flags_lock:
                 # Eliminar la bandera de detención de prueba
                 stop_flags_dns.pop(service.pk, None)
+                
 
                 
 @shared_task
