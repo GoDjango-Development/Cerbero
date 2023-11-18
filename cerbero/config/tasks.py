@@ -460,10 +460,7 @@ def monitoreo_http_services(pk, resume=False):
             else:
                 # No hay una prueba en ejecución para detener/*
                 pass
-        with test_status:
-            if service.processed_by == 'Terminado':
-                print("prueba terminada no se puede volver a ejecutar")
-
+       
         if pk not in current_threads_http or not current_threads_http[pk].is_alive():
             # Si no hay un hilo en ejecución para el servicio actual
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
@@ -488,9 +485,7 @@ def test_https(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        if service.processed_by != 'Terminado':
-            for i in range(current_iteration, num_of_tests):
-
+        while True:
                 # Comprobar si se ha activado la bandera de detención
                 if stop_flag.is_set():
                     with test_status:
@@ -516,7 +511,6 @@ def test_https(service, stop_flag):
 
                         if redirect_response.status == 200:
                             result = "up"
-
                         else:
                             result = "down"
 
@@ -529,7 +523,6 @@ def test_https(service, stop_flag):
                             result = "down"
 
                         test_results.append(result)
-
                         response_statuss = response.status
 
                     end_time = time.time()
@@ -538,8 +531,9 @@ def test_https(service, stop_flag):
                 except Exception as e:
                     error_messages = str(e)
                     cpu_processing_times = 0
-                    result = "error"
+                    result = "down"
                     test_results.append(result)
+
                 timestamp = timezone.now()
 
                 service.status = result
@@ -556,19 +550,17 @@ def test_https(service, stop_flag):
                 )
 
                 # Actualizar la iteración actual en la base de datos
-                current_iteration = i + 1
+                current_iteration = (current_iteration + 1) % num_of_tests
 
-               
                 service.current_iteration = current_iteration
-                
                 service.save()
 
                 time.sleep(test_duration)
-                if current_iteration == num_of_tests:
-                    service.processed_by = 'Terminado'
-                    service.save()
-                    #Envio de mensaje por correo sobre los valores que dieron la prueba
-                    send_test_completion_email_http(service)
+
+                if current_iteration == 0:
+                    service.refresh_from_db()
+                        
+                    
 
     finally:
         with test_status:
@@ -581,6 +573,7 @@ def test_https(service, stop_flag):
             with stop_flags_lock:
                 # Eliminar la bandera de detención de prueba
                 stop_flags_http.pop(service.pk, None)
+
 
 @shared_task
 def monitoreo_tcp_services(pk, resume=False):
@@ -607,10 +600,7 @@ def monitoreo_tcp_services(pk, resume=False):
             else:
                 # No hay una prueba en ejecución para detener/*
                 pass
-        with test_status:
-            if service.processed_by == 'Terminado':
-                print("prueba terminada no se puede volver a ejecutar")
-
+        
         if pk not in current_threads_tcp or not current_threads_tcp[pk].is_alive():
             # Si no hay un hilo en ejecución para el servicio actual
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
@@ -635,77 +625,63 @@ def test_tcp(service, stop_flag):
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
         print(f'valor del current_iteration antes del for {current_iteration}')
-        if service.processed_by != 'Terminado':
-            for i in range(current_iteration, num_of_tests):
-                service.processed_by = current_thread().name
-                service.save()
-                print(f'iteracion {i} ')
-
-                # Comprobar si se ha activado la bandera de detención
-                if stop_flag.is_set():
-                    with test_status:
-                        service.in_process = False  # Establecer el estado in_process en False
-                        print(
-                            f'dentro de la preugunta de la parada {service.in_process} el de nombre {service.name}')
-                        service.processed_by = 'Detenido'
-
-                        service.current_iteration = current_iteration
-                        print(f'se detuvo en { service.current_iteration}')
-                        service.save()
-                        break
-                print(f'continuo en current_iteration {current_iteration}')
-
-                try:
-                    start_time = time.time()
-                    service.processed_by = 'Monitoreando'
+        while True:
+            # Comprobar si se ha activado la bandera de detención
+            if stop_flag.is_set():
+                with test_status:
+                    service.in_process = False  # Establecer el estado in_process en False
+                    service.processed_by = 'Detenido'
+                    service.current_iteration = current_iteration
                     service.save()
-                    if ip:
-                        with socket.create_connection((ip, port), timeout=5) as sock:
-                            result = "up"
-                
-                    else:
-                        result = "down"
+                    break
 
-                    end_time = time.time()
-                    cpu_processing_times = end_time - start_time
-                    print(f"costo conexión: {cpu_processing_times}")
-
-                except Exception as e:
-                    print(f"Error de conexión: {str(e)}")
-                    result = "error"
-                    cpu_processing_times = 0
-                test_results.append(result)
-
-                service.status = result
+            try:
+                start_time = time.time()
+                service.processed_by = 'Monitoreando'
                 service.save()
+                if ip:
+                    with socket.create_connection((ip, port), timeout=5) as sock:
+                        result = "up"
+                else:
+                    result = "down"
 
-                timestamp = timezone.now()
+                end_time = time.time()
+                cpu_processing_times = end_time - start_time
+                print(f"costo conexión: {cpu_processing_times}")
 
-                is_up = result
+            except Exception as e:
+                print(f"Error de conexión: {str(e)}")
 
-                service.status = result
-                service.save()
+            test_results.append(result)
 
-                is_up = result
-                ServiceStatusTCP.objects.create(
-                    service=service,
-                    timestamp=timestamp,
-                    is_up=is_up,
-                    cpu_processing_time=cpu_processing_times,
+            service.status = result
+            service.save()
 
-                )
-                # Actualizar la iteración actual en la base de datos
-                current_iteration = i + 1
+            timestamp = timezone.now()
 
-              
-                service.save()
+            is_up = result
 
-                time.sleep(test_duration)
-            if current_iteration == num_of_tests:
-                service.processed_by = 'Terminado'
-                service.save()
-                #Envio de mensaje por correo sobre los valores que dieron la prueba
-                send_test_completion_email_tcp(service)
+            service.status = result
+            service.save()
+
+            is_up = result
+            ServiceStatusTCP.objects.create(
+                service=service,
+                timestamp=timestamp,
+                is_up=is_up,
+                cpu_processing_time=cpu_processing_times,
+            )
+
+            # Actualizar la iteración actual en la base de datos
+            current_iteration = (current_iteration + 1) % num_of_tests
+
+            service.current_iteration = current_iteration
+            service.save()
+
+            if current_iteration == 0:
+                service.refresh_from_db()
+
+            time.sleep(test_duration)
 
     finally:
         with test_status:
@@ -745,10 +721,7 @@ def monitoreo_dns_services(pk, resume=False):
             else:
                 # No hay una prueba en ejecución para detener/*
                 pass
-        with test_status:
-            if service.processed_by == 'Terminado':
-                print("prueba terminada no se puede volver a ejecutar")
-
+        
         if pk not in current_threads_dns or not current_threads_dns[pk].is_alive():
             # Si no hay un hilo en ejecución para el servicio actual
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
