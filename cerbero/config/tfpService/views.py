@@ -28,7 +28,7 @@ def verify_edit_allowed(view_func):
 
         if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
             messages.error(
-                request, "No se puede editar el elemento porque la prueba está en curso o terminada.")
+                request, "No se puede editar el elemento porque la prueba está en curso.")
             return redirect('list_tfp')
 
         # Verificar si el usuario actual es el creador del servicio o pertenece al grupo "admin"
@@ -47,7 +47,7 @@ def verify_deletion_allowed(view_func):
     def wrapper(request, pk, *args, **kwargs):
         service = get_object_or_404(tfp_s, pk=pk)
 
-        if service.processed_by not in ['Esperando', 'Detenido', 'Terminado']:
+        if service.processed_by not in ['Esperando', 'Detenido']:
             
             return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
 
@@ -107,15 +107,12 @@ def update_data_tfp(request):
             status_html = '<i class="fas fa-circle" style="color: green;"></i>'
         elif status == 'down':
             status_html = '<i class="fas fa-circle" style="color: red;"></i>'
-        elif status == 'error':
-            status_html = '<i class="fas fa-circle" style="color: yellow;"></i>'
         else:
             status_html = '<i class="fas fa-circle" style="color: grey;"></i>'
 
         # Crea el contenido HTML personalizado para la columna "Processed By" en función del valor
-        if processed_by == 'Terminado':
-            processed_by_html = '<h6><span class="badge badge-pill badge-success">Terminado</span></h6>'
-        elif processed_by == 'Detenido':
+        
+        if processed_by == 'Detenido':
             processed_by_html = '<h6><span class="badge badge-pill badge-warning">Detenido</span></h6>'
         elif processed_by == 'Monitoreando':
             processed_by_html = '<h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>'

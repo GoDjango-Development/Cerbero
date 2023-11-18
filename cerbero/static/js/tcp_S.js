@@ -47,20 +47,7 @@ $(document).ready(function () {
                     $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
                 }
 
-                // Acceder al valor de data-in-processed-by de cada botón
-                $('.monitoreo-btn').each(function () {
-                    var inProcessedBy = $(this).attr('data-in-processed-by');
-                    console.log('Valor de data-in-processed-by:', inProcessedBy);
-
-                    // Realizar alguna acción basada en el valor de data-in-processed-by
-                    if (inProcessedBy === 'terminado') {
-                        console.log('Valor de data-in-processed-by fue terminado:', inProcessedBy);
-                        inProcessedBy.prop('disabled', true);
-                        inProcessedBy.find('i').addClass('fa-ban');
-                        inProcessedBy.attr('title', 'Monitoreo concluido');
-
-                    }
-                });
+                
 
             },
             error: function (xhr) {
@@ -97,7 +84,7 @@ $(document).ready(function () {
 
         event.preventDefault();
         var processedByValue = $(this).data("processed");
-        if (processedByValue !== "Esperando" && processedByValue !== "Detenido" && processedByValue !== "Terminado") {
+        if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
             toastr.warning("No se puede eliminar el elemento porque la prueba está en curso.");
         } else {
             Swal.fire({
@@ -137,7 +124,7 @@ $(document).ready(function () {
         event.preventDefault();
         var processedByValue = $(this).data("in-processed");
         if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
-            toastr.warning("No se puede editar el elemento porque la prueba está en curso o terminada.");
+            toastr.warning("No se puede editar el elemento porque la prueba está en curso.");
         } else {
             var href = $(this).attr("href");
             if (href) {
@@ -236,16 +223,8 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     }
     // Actualizar el atributo data-button-state
     btn.data('button-state', iniciarMonitoreo.toString());
-    // Verificar si el valor de data es "Terminado" y deshabilitar el botón
-    console.log(btn.data('in-processed-by'));
-    if (btn.data('in-processed-by') === 'Terminado') {
-        btn.prop('disabled', true);
-        btn.find('i').removeClass('fa-pause').addClass('fa-ban');
-        btn.attr('title', 'Monitoreo concluido');
-    } else {
-        btn.prop('disabled', false);
-        btn.removeAttr('title');
-    }
+    
+    
 
 
     if (socket.readyState === WebSocket.OPEN) {

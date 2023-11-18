@@ -624,7 +624,6 @@ def test_tcp(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        print(f'valor del current_iteration antes del for {current_iteration}')
         while True:
             # Comprobar si se ha activado la bandera de detención
             if stop_flag.is_set():
@@ -647,7 +646,6 @@ def test_tcp(service, stop_flag):
 
                 end_time = time.time()
                 cpu_processing_times = end_time - start_time
-                print(f"costo conexión: {cpu_processing_times}")
 
             except Exception as e:
                 print(f"Error de conexión: {str(e)}")
@@ -659,7 +657,6 @@ def test_tcp(service, stop_flag):
 
             timestamp = timezone.now()
 
-            is_up = result
 
             service.status = result
             service.save()
@@ -744,74 +741,63 @@ def test_dns(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        print(f'valor del current_iteration antes del for {current_iteration}')
-        if service.processed_by != 'Terminado':
-            for i in range(current_iteration, num_of_tests):
-                service.processed_by = current_thread().name
-                service.save()
-
-                # Comprobar si se ha activado la bandera de detención
-                if stop_flag.is_set():
-                    with test_status:
-                        service.in_process = False  # Establecer el estado in_process en False
-                        
-                        service.current_iteration = current_iteration
-                        
-                        service.save()
-                        break
-
-                try:
-                    start_time = time.time()
-                    service.processed_by = 'Monitoreando'
+        while True:
+            # Comprobar si se ha activado la bandera de detención
+            if stop_flag.is_set():
+                with test_status:
+                    service.in_process = False  # Establecer el estado in_process en False
+                    service.processed_by = 'Detenido'
+                    service.current_iteration = current_iteration
                     service.save()
-                    if ip:
-                        with socket.create_connection((ip, port), timeout=5) as sock:
-                            result = "up"
+                    break
+
+            try:
+                start_time = time.time()
+                service.processed_by = 'Monitoreando'
+                service.save()
+                if ip:
+                    with socket.create_connection((ip, port), timeout=5) as sock:
+                        result = "up"
+                else:
+                    result = "down"
+
+                end_time = time.time()
+                cpu_processing_times = end_time - start_time
+
+            except Exception as e:
+                print(f"Error de conexión: {str(e)}")
+
+            test_results.append(result)
+
+            service.status = result
+            service.save()
+
+            timestamp = timezone.now()
+
+
+            service.status = result
+            service.save()
+
                 
-                    else:
-                        result = "down"
 
-                    end_time = time.time()
-                    cpu_processing_times = end_time - start_time
-                    print(f"costo conexión: {cpu_processing_times}")
-
-                except Exception as e:
-                    print(f"Error de conexión: {str(e)}")
-                    result = "error"
-                    cpu_processing_times = 0
-                test_results.append(result)
-
-                service.status = result
-                service.save()
-
-                timestamp = timezone.now()
-
-                is_up = result
-
-                service.status = result
-                service.save()
-
-                is_up = result
-                ServiceStatusDNS.objects.create(
+            is_up = result
+            ServiceStatusDNS.objects.create(
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
                     cpu_processing_time=cpu_processing_times,
 
                 )
-                # Actualizar la iteración actual en la base de datos
-                current_iteration = i + 1
+            # Actualizar la iteración actual en la base de datos
+            current_iteration = (current_iteration + 1) % num_of_tests
 
-               
-                service.save()
+            service.current_iteration = current_iteration
+            service.save()
 
-                time.sleep(test_duration)
-            if current_iteration == num_of_tests:
-                service.processed_by = 'Terminado'
-                service.save()
-                #Envio de mensaje por correo sobre los valores que dieron la prueba
-                send_test_completion_email_dns(service)
+            if current_iteration == 0:
+                service.refresh_from_db()
 
+            time.sleep(test_duration)
     finally:
         with test_status:
             service.refresh_from_db()
@@ -850,10 +836,7 @@ def monitoreo_icmp_services(pk, resume=False):
             else:
                 # No hay una prueba en ejecución para detener/*
                 pass
-        with test_status:
-            if service.processed_by == 'Terminado':
-                print("prueba terminada no se puede volver a ejecutar")
-
+        
         if pk not in current_threads_icmp or not current_threads_icmp[pk].is_alive():
             # Si no hay un hilo en ejecución para el servicio actual
             stop_flag = Event()  # Crear una nueva bandera de detención de prueba
@@ -876,41 +859,36 @@ def test_icmp(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        if service.processed_by != 'Terminado':
-            for i in range(current_iteration, num_of_tests):
-                service.processed_by = current_thread().name
-                service.save()
-
-                # Comprobar si se ha activado la bandera de detención
-                if stop_flag.is_set():
-                    with test_status:
-                        service.in_process = False  # Establecer el estado in_process en False
-                        service.processed_by = 'Detenido'
-
-                        service.current_iteration = current_iteration
-                        service.save()
-                        break
-
-                try:
-                    start_time = time.time()
-                    service.processed_by = 'Monitoreando'
+        while True:
+            # Comprobar si se ha activado la bandera de detención
+            if stop_flag.is_set():
+                with test_status:
+                    service.in_process = False  # Establecer el estado in_process en False
+                    service.processed_by = 'Detenido'
+                    service.current_iteration = current_iteration
                     service.save()
-                    icmp = ping(ip, count=3, interval=1, timeout=5)
-                    if icmp.is_alive:
-                        result = "up"
-                    else:
-                        result = "down"
-                    end_time = time.time()
-                    cpu_processing_times = end_time - start_time
-                except Exception as e:
-                    print(f"Error de conexión: {str(e)}")
-                    result = "error"
-                    cpu_processing_times = 0
+                    break
+
+
+            try:
+                start_time = time.time()
+                service.processed_by = 'Monitoreando'
+                service.save()
+                icmp = ping(ip, count=3, interval=1, timeout=5)
+                if icmp.is_alive:
+                    result = "up"
+                else:
+                    result = "down"
+                end_time = time.time()
+                cpu_processing_times = end_time - start_time
+            except Exception as e:
+                print(f"Error de conexión: {str(e)}")
+                result = "down"
+                cpu_processing_times = 0
                 test_results.append(result)
                 service.status = result
                 service.save()
                 timestamp = timezone.now()
-                is_up = result
                 service.status = result
                 service.save()
 
@@ -923,17 +901,15 @@ def test_icmp(service, stop_flag):
 
                 )
                 # Actualizar la iteración actual en la base de datos
-                current_iteration = i + 1
+            current_iteration = (current_iteration + 1) % num_of_tests
 
-                service.save()
+            service.current_iteration = current_iteration
+            service.save()
 
-                time.sleep(test_duration)
-            if current_iteration == num_of_tests:
-                service.processed_by = 'Terminado'
-                service.save()
-                #Envio de mensaje por correo sobre los valores que dieron la prueba
-                send_test_completion_email_icmp(service)
+            if current_iteration == 0:
+                service.refresh_from_db()
 
+            time.sleep(test_duration)
     finally:
         with test_status:
             service.refresh_from_db()
@@ -944,8 +920,8 @@ def test_icmp(service, stop_flag):
         with stop_flags_update_lock:
             with stop_flags_lock:
                 # Eliminar la bandera de detención de prueba
-                stop_flags_icmp.pop(service.pk, None)
-                
+                stop_flags_dns.pop(service.pk, None)
+
                 
 @shared_task
 def monitoreo_tfp_services(pk, resume=False):
@@ -972,9 +948,7 @@ def monitoreo_tfp_services(pk, resume=False):
             else:
                 # No hay una prueba en ejecución para detener/*
                 pass
-        with test_status:
-            if service.processed_by == 'Terminado':
-                pass
+        
 
         if pk not in current_threads_tfp or not current_threads_tfp[pk].is_alive():
             # Si no hay un hilo en ejecución para el servicio actual
@@ -1003,42 +977,34 @@ def test_tfp(service, stop_flag):
 
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
-        print(f'valor del current_iteration antes del for {current_iteration}')
-        if service.processed_by != 'Terminado':
-            for i in range(current_iteration, num_of_tests):
-                service.processed_by = current_thread().name
-                service.save()
-                print(f'iteracion {i} ')
-
-                # Comprobar si se ha activado la bandera de detención
-                if stop_flag.is_set():
-                    with test_status:
-                        service.in_process = False  # Establecer el estado in_process en False
-                        service.processed_by = 'Detenido'
-
-                        service.current_iteration = current_iteration
-                        print(f'se detuvo en { service.current_iteration}')
-                        service.save()
-                        break
-
-                try:
-                    start_time = time.time()
-                    service.processed_by = 'Monitoreando'
+        while True:
+            # Comprobar si se ha activado la bandera de detención
+            if stop_flag.is_set():
+                with test_status:
+                    service.in_process = False  # Establecer el estado in_process en False
+                    service.processed_by = 'Detenido'
+                    service.current_iteration = current_iteration
                     service.save()
+                    break
+
+            try:
+                start_time = time.time()
+                service.processed_by = 'Monitoreando'
+                service.save()
                     
-                    proto = TfProtocol(version, publickey, clienthash, address, port) 
-                    proto.connect()
-                    end_time = time.time()
-                    cpu_processing_times = end_time - start_time
-                    if proto.connect():
-                        result = 'up'
-                    else:
-                        result = "down"            
-                    proto.disconnect() 
-                except Exception as e:
-                    print(f"Error de conexión: {str(e)}")
-                    result = "error"
-                    cpu_processing_times = 0
+                proto = TfProtocol(version, publickey, clienthash, address, port) 
+                proto.connect()
+                end_time = time.time()
+                cpu_processing_times = end_time - start_time
+                if proto.connect():
+                    result = 'up'
+                else:
+                    result = "down"            
+                proto.disconnect() 
+            except Exception as e:
+                print(f"Error de conexión: {str(e)}")
+                result = "down"
+                cpu_processing_times = 0
                 test_results.append(result)
 
                 service.status = result
@@ -1060,16 +1026,15 @@ def test_tfp(service, stop_flag):
 
                 )
                 # Actualizar la iteración actual en la base de datos
-                current_iteration = i + 1
-                service.save()
+            current_iteration = (current_iteration + 1) % num_of_tests
 
-                time.sleep(test_duration)
-            if current_iteration == num_of_tests:
-                service.processed_by = 'Terminado'
-                service.save()
-                #Envio de mensaje por correo sobre los valores que dieron la prueba
-                send_test_completion_email_trf(service)
+            service.current_iteration = current_iteration
+            service.save()
 
+            if current_iteration == 0:
+                service.refresh_from_db()
+
+            time.sleep(test_duration)
     finally:
         with test_status:
             service.refresh_from_db()
@@ -1080,4 +1045,4 @@ def test_tfp(service, stop_flag):
         with stop_flags_update_lock:
             with stop_flags_lock:
                 # Eliminar la bandera de detención de prueba
-                stop_flags_icmp.pop(service.pk, None)
+                stop_flags_dns.pop(service.pk, None)

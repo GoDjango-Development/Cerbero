@@ -30,7 +30,7 @@ def verify_edit_allowed(view_func):
 
         if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
             messages.error(
-                request, "No se puede editar el elemento porque la prueba está en curso o terminada.")
+                request, "No se puede editar el elemento porque la prueba está en curso.")
             return redirect('list_https')
 
         # Verificar si el usuario actual es el creador del servicio o pertenece al grupo "admin"
@@ -49,7 +49,7 @@ def verify_deletion_allowed(view_func):
     def wrapper(request, pk, *args, **kwargs):
         service = get_object_or_404(http_s, pk=pk)
 
-        if service.processed_by not in ['Esperando', 'Detenido', 'Terminado']:
+        if service.processed_by not in ['Esperando', 'Detenido']:
             return JsonResponse({'mensaje': 'No se puede eliminar el elemento porque la prueba está en curso.'}, status=400)
 
         

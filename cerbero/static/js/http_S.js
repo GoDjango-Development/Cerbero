@@ -24,14 +24,11 @@ $(document).ready(function () {
             type: 'GET',
             success: function (response) {
                 isCeleryRunning = response.isCeleryRunning;
-                console.log('estado del servidor celery' + isCeleryRunning)
                 isRedisRunning = response.isRedisRunning;
-                console.log('estado del servidor redis' + isRedisRunning)
 
                 if (isCeleryRunning) {
                     celeryActivo = true;
                     $('.monitoreo-btn').prop('disabled', false);
-                    console.log(btn.data('in-processed-by'));
 
                 } else {
                     celeryActivo = false;
@@ -68,6 +65,7 @@ $(document).ready(function () {
 
     // Llamar a la función para obtener el estado de Celery al cargar la página
     obtenerEstadoCelery();
+
     // Manejar el evento de clic del botón de monitoreo
     $('.monitoreo-btn').click(function () {
         if (!celeryActivo) {
@@ -224,7 +222,7 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     // Actualizar el atributo data-button-state
     btn.data('button-state', iniciarMonitoreo.toString());
     
-    }
+    
 
 
     if (socket.readyState === WebSocket.OPEN) {
@@ -242,10 +240,6 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     socket.onopen = function (event) {
         console.log('Conexión WebSocket abierta');
     };
-
-
-
-
 
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
