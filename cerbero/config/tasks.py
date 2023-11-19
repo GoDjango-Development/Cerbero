@@ -583,6 +583,9 @@ def test_tcp(service, stop_flag):
     port = service.port
     num_of_tests = service.number_probe
     test_duration = service.probe_timeout
+    previous_status = None  # Variable para almacenar el estado anterior del servicio
+    down_notified = False  # Indicador para controlar si se ha enviado la notificación de "down"
+
     try:
         service.in_process = True
         service.save()
@@ -613,10 +616,10 @@ def test_tcp(service, stop_flag):
             except Exception as e:
                 print(f"Error de conexión: {str(e)}")
 
-            test_results.append(result)
+                test_results.append(result)
 
-            service.status = result
-            service.save()
+                service.status = result
+                service.save()
             
             # Verificar si el estado ha cambiado a "down"
             if result == "down":
@@ -723,6 +726,8 @@ def test_dns(service, stop_flag):
     port = service.port
     num_of_tests = service.number_probe
     test_duration = service.probe_timeout
+    previous_status = None  # Variable para almacenar el estado anterior del servicio
+    down_notified = False  # Indicador para controlar si se ha enviado la notificación de "down"
 
     try:
         service.in_process = True
@@ -756,10 +761,10 @@ def test_dns(service, stop_flag):
             except Exception as e:
                 print(f"Error de conexión: {str(e)}")
 
-            test_results.append(result)
+                test_results.append(result)
 
-            service.status = result
-            service.save()
+                service.status = result
+                service.save()
             
             # Verificar si el estado ha cambiado a "down"
             if result == "down":
@@ -865,6 +870,8 @@ def test_icmp(service, stop_flag):
     ip = service.dns_ip
     num_of_tests = service.number_probe
     test_duration = service.probe_timeout
+    previous_status = None  # Variable para almacenar el estado anterior del servicio
+    down_notified = False  # Indicador para controlar si se ha enviado la notificación de "down"
 
     try:
         service.in_process = True
@@ -1011,7 +1018,9 @@ def test_tfp(service, stop_flag):
     clienthash = service.hash
     version = service.version 
     publickey = service.public_key
-    
+    previous_status = None  # Variable para almacenar el estado anterior del servicio
+    down_notified = False  # Indicador para controlar si se ha enviado la notificación de "down"
+
     num_of_tests = service.number_probe
     test_duration = service.probe_timeout
 
