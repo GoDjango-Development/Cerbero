@@ -38,40 +38,35 @@ stop_flags_update_lock = Lock()
 test_status = Lock()
 
 
-def send_test_completion_email_http(service):
+def send_test_completion_email_http(service, subject):
     created_by_user = service.create_by
     service_name = service.name
-    cant_test = service.number_probe
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
     test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
-    num_up = test_results.filter(is_up='up').count()
-    print(f'num_up {num_up}')
-    num_down = test_results.filter(is_up='down').count()
-    print(f'num_down {num_down}')
-    num_error = test_results.filter(is_up='error').count()
-    print(f'num_error {num_error}')
+    
+    
 
-    last_result = test_results.first().is_up if test_results.exists() else None
-    print(f'last_result {last_result}')
      
     # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
     # Obtener los usuarios asociados al grupo "staff"
     staff_users = staff_group.user_set.all()
-
-    # Renderizar el contenido del correo electrónico en formato HTML
-    html_content = render_to_string('email/test_completion.html', {
-        'service_name': service_name,
-        'service_type' : service_type,
-        'cant_test': cant_test,
-        'num_up': num_up,
-        'num_down': num_down,
-        'num_error': num_error,
-        'last_result': last_result,
-    })
+    if test_results == "down":
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        
+        })
+    else:
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion_up.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        })
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
@@ -85,71 +80,61 @@ def send_test_completion_email_http(service):
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
 
-    if last_result in ['down', 'error']:
-        # Crear una instancia de EmailMultiAlternatives
-        msg = EmailMultiAlternatives(
-            subject='Servicio HTTP ha experimentado problemas.',
+    # Crear una instancia de EmailMultiAlternatives
+    msg = EmailMultiAlternatives(
+            subject= subject,
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
         )
-        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
     
         # Crear una instancia de MIMEImage con el contenido de la imagen
-        image = MIMEImage(image_data)
-        image.add_header('Content-ID', '<imagen>')
-        image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    image = MIMEImage(image_data)
+    image.add_header('Content-ID', '<imagen>')
+    image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    msg.attach(image)
+    # Enviar correo electrónico al usuario creador
+    msg.send()
+    # Enviar correo electrónico a todos los usuarios del grupo "staff"
+    for user in staff_users and not created_by_user:
+        msg = EmailMultiAlternatives(
+            subject= subject,
+            body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
+        )
+        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
         msg.attach(image)
-
-        # Enviar correo electrónico al usuario creador
         msg.send()
 
-        # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users and not created_by_user:
-            msg = EmailMultiAlternatives(
-                subject='Servicio HTTP ha experimentado problemas.',
-                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-                from_email=EMAIL_HOST_USER,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-            msg.attach(image)
-            msg.send()
-    
-def send_test_completion_email_tcp(service):
+def send_test_completion_email_tcp(service, subject):
     created_by_user = service.create_by
     service_name = service.name
-    cant_test = service.number_probe
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
     test_results = ServiceStatusTCP.objects.filter(service=service).order_by('-timestamp')
-    num_up = test_results.filter(is_up='up').count()
-    print(f'num_up {num_up}')
-    num_down = test_results.filter(is_up='down').count()
-    print(f'num_down {num_down}')
-    num_error = test_results.filter(is_up='error').count()
-    print(f'num_error {num_error}')
-
-    last_result = test_results.first().is_up if test_results.exists() else None
-    print(f'last_result {last_result}')
+    
      
-    # Obtener el grupo "staff"
+     # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
     # Obtener los usuarios asociados al grupo "staff"
     staff_users = staff_group.user_set.all()
-
-    # Renderizar el contenido del correo electrónico en formato HTML
-    html_content = render_to_string('email/test_completion.html', {
-        'service_name': service_name,
-        'service_type' : service_type,
-        'cant_test': cant_test,
-        'num_up': num_up,
-        'num_down': num_down,
-        'num_error': num_error,
-        'last_result': last_result,
-    })
+    if test_results == "down":
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        
+        })
+    else:
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion_up.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        })
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
@@ -163,71 +148,60 @@ def send_test_completion_email_tcp(service):
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
 
-    if last_result in ['down', 'error']:
-        # Crear una instancia de EmailMultiAlternatives
-        msg = EmailMultiAlternatives(
-            subject='Servicio TCP ha experimentado problemas.',
+    # Crear una instancia de EmailMultiAlternatives
+    msg = EmailMultiAlternatives(
+            subject= subject,
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
         )
-        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
     
         # Crear una instancia de MIMEImage con el contenido de la imagen
-        image = MIMEImage(image_data)
-        image.add_header('Content-ID', '<imagen>')
-        image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    image = MIMEImage(image_data)
+    image.add_header('Content-ID', '<imagen>')
+    image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    msg.attach(image)
+    # Enviar correo electrónico al usuario creador
+    msg.send()
+    # Enviar correo electrónico a todos los usuarios del grupo "staff"
+    for user in staff_users and not created_by_user:
+        msg = EmailMultiAlternatives(
+            subject= subject,
+            body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
+        )
+        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
         msg.attach(image)
-
-        # Enviar correo electrónico al usuario creador
         msg.send()
 
-        # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users and not created_by_user:
-            msg = EmailMultiAlternatives(
-                subject='Servicio TCP ha experimentado problemas.',
-                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-                from_email=EMAIL_HOST_USER,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-            msg.attach(image)
-            msg.send()
-   
-def send_test_completion_email_dns(service):
+def send_test_completion_email_dns(service, subject):
     created_by_user = service.create_by
     service_name = service.name
-    cant_test = service.number_probe
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
     test_results = ServiceStatusDNS.objects.filter(service=service).order_by('-timestamp')
-    num_up = test_results.filter(is_up='up').count()
-    print(f'num_up {num_up}')
-    num_down = test_results.filter(is_up='down').count()
-    print(f'num_down {num_down}')
-    num_error = test_results.filter(is_up='error').count()
-    print(f'num_error {num_error}')
-
-    last_result = test_results.first().is_up if test_results.exists() else None
-    print(f'last_result {last_result}')
-     
-    # Obtener el grupo "staff"
+    
+      # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
     # Obtener los usuarios asociados al grupo "staff"
     staff_users = staff_group.user_set.all()
-
-    # Renderizar el contenido del correo electrónico en formato HTML
-    html_content = render_to_string('email/test_completion.html', {
-        'service_name': service_name,
-        'service_type' : service_type,
-        'cant_test': cant_test,
-        'num_up': num_up,
-        'num_down': num_down,
-        'num_error': num_error,
-        'last_result': last_result,
-    })
+    if test_results == "down":
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        
+        })
+    else:
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion_up.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        })
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
@@ -241,71 +215,60 @@ def send_test_completion_email_dns(service):
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
 
-    if last_result in ['down', 'error']:
-        # Crear una instancia de EmailMultiAlternatives
-        msg = EmailMultiAlternatives(
-            subject='Servicio DNS ha experimentado problemas.',
+    # Crear una instancia de EmailMultiAlternatives
+    msg = EmailMultiAlternatives(
+            subject= subject,
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
         )
-        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
     
         # Crear una instancia de MIMEImage con el contenido de la imagen
-        image = MIMEImage(image_data)
-        image.add_header('Content-ID', '<imagen>')
-        image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    image = MIMEImage(image_data)
+    image.add_header('Content-ID', '<imagen>')
+    image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    msg.attach(image)
+    # Enviar correo electrónico al usuario creador
+    msg.send()
+    # Enviar correo electrónico a todos los usuarios del grupo "staff"
+    for user in staff_users and not created_by_user:
+        msg = EmailMultiAlternatives(
+            subject= subject,
+            body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
+        )
+        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
         msg.attach(image)
-
-        # Enviar correo electrónico al usuario creador
         msg.send()
 
-        # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users and not created_by_user:
-            msg = EmailMultiAlternatives(
-                subject='Servicio DNS ha experimentado problemas.',
-                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-                from_email=EMAIL_HOST_USER,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-            msg.attach(image)
-            msg.send()
-
-def send_test_completion_email_icmp(service):
+def send_test_completion_email_icmp(service, subject):
     created_by_user = service.create_by
     service_name = service.name
-    cant_test = service.number_probe
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
     test_results = ServiceStatusICMP.objects.filter(service=service).order_by('-timestamp')
-    num_up = test_results.filter(is_up='up').count()
-    print(f'num_up {num_up}')
-    num_down = test_results.filter(is_up='down').count()
-    print(f'num_down {num_down}')
-    num_error = test_results.filter(is_up='error').count()
-    print(f'num_error {num_error}')
-
-    last_result = test_results.first().is_up if test_results.exists() else None
-    print(f'last_result {last_result}')
-     
-    # Obtener el grupo "staff"
+    
+  # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
     # Obtener los usuarios asociados al grupo "staff"
     staff_users = staff_group.user_set.all()
-
-    # Renderizar el contenido del correo electrónico en formato HTML
-    html_content = render_to_string('email/test_completion.html', {
-        'service_name': service_name,
-        'service_type' : service_type,
-        'cant_test': cant_test,
-        'num_up': num_up,
-        'num_down': num_down,
-        'num_error': num_error,
-        'last_result': last_result,
-    })
+    if test_results == "down":
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        
+        })
+    else:
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion_up.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        })
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
@@ -319,71 +282,59 @@ def send_test_completion_email_icmp(service):
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
 
-    if last_result in ['down', 'error']:
-        # Crear una instancia de EmailMultiAlternatives
-        msg = EmailMultiAlternatives(
-            subject='Servicio ICMP ha experimentado problemas.',
+    # Crear una instancia de EmailMultiAlternatives
+    msg = EmailMultiAlternatives(
+            subject= subject,
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
         )
-        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
     
         # Crear una instancia de MIMEImage con el contenido de la imagen
-        image = MIMEImage(image_data)
-        image.add_header('Content-ID', '<imagen>')
-        image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    image = MIMEImage(image_data)
+    image.add_header('Content-ID', '<imagen>')
+    image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    msg.attach(image)
+    # Enviar correo electrónico al usuario creador
+    msg.send()
+    # Enviar correo electrónico a todos los usuarios del grupo "staff"
+    for user in staff_users and not created_by_user:
+        msg = EmailMultiAlternatives(
+            subject= subject,
+            body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
+        )
+        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
         msg.attach(image)
-
-        # Enviar correo electrónico al usuario creador
         msg.send()
-
-        # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users and not created_by_user:
-            msg = EmailMultiAlternatives(
-                subject='Servicio ICMP ha experimentado problemas.',
-                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-                from_email=EMAIL_HOST_USER,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-            msg.attach(image)
-            msg.send()
    
-def send_test_completion_email_trf(service):
+def send_test_completion_email_trf(service, subject):
     created_by_user = service.create_by
     service_name = service.name
-    cant_test = service.number_probe
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
     test_results = ServiceStatusTFProtocol.objects.filter(service=service).order_by('-timestamp')
-    num_up = test_results.filter(is_up='up').count()
-    print(f'num_up {num_up}')
-    num_down = test_results.filter(is_up='down').count()
-    print(f'num_down {num_down}')
-    num_error = test_results.filter(is_up='error').count()
-    print(f'num_error {num_error}')
-
-    last_result = test_results.first().is_up if test_results.exists() else None
-    print(f'last_result {last_result}')
-     
-    # Obtener el grupo "staff"
+      # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
     # Obtener los usuarios asociados al grupo "staff"
     staff_users = staff_group.user_set.all()
-
-    # Renderizar el contenido del correo electrónico en formato HTML
-    html_content = render_to_string('email/test_completion.html', {
-        'service_name': service_name,
-        'service_type' : service_type,
-        'cant_test': cant_test,
-        'num_up': num_up,
-        'num_down': num_down,
-        'num_error': num_error,
-        'last_result': last_result,
-    })
+    if test_results == "down":
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        
+        })
+    else:
+        # Renderizar el contenido del correo electrónico en formato HTML
+        html_content = render_to_string('email/test_completion_up.html', {
+            'service_name': service_name,
+            'service_type' : service_type,
+        })
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
@@ -397,36 +348,33 @@ def send_test_completion_email_trf(service):
     # Obtener el nombre de archivo de la imagen
     image_filename = 'logo.png'
 
-    if last_result in ['down', 'error']:
-        # Crear una instancia de EmailMultiAlternatives
-        msg = EmailMultiAlternatives(
-            subject='Servicio TFProtocol ha experimentado problemas.',
+    # Crear una instancia de EmailMultiAlternatives
+    msg = EmailMultiAlternatives(
+            subject= subject,
             body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
             from_email=EMAIL_HOST_USER,
             to=[created_by_user.email],
         )
-        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
+    msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
     
         # Crear una instancia de MIMEImage con el contenido de la imagen
-        image = MIMEImage(image_data)
-        image.add_header('Content-ID', '<imagen>')
-        image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    image = MIMEImage(image_data)
+    image.add_header('Content-ID', '<imagen>')
+    image.add_header('Content-Disposition', 'inline', filename=image_filename)
+    msg.attach(image)
+    # Enviar correo electrónico al usuario creador
+    msg.send()
+    # Enviar correo electrónico a todos los usuarios del grupo "staff"
+    for user in staff_users and not created_by_user:
+        msg = EmailMultiAlternatives(
+            subject= subject,
+            body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
+            from_email=EMAIL_HOST_USER,
+            to=[user.email],
+        )
+        msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
         msg.attach(image)
-
-        # Enviar correo electrónico al usuario creador
         msg.send()
-
-        # Enviar correo electrónico a todos los usuarios del grupo "staff"
-        for user in staff_users:
-            msg = EmailMultiAlternatives(
-                subject='Servicio TFProtocol ha experimentado problemas.',
-                body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
-                from_email=EMAIL_HOST_USER,
-                to=[user.email],
-            )
-            msg.attach_alternative(html_content, "text/html")  # Adjuntar el contenido HTML al correo
-            msg.attach(image)
-            msg.send()
  
    
 @shared_task
@@ -472,6 +420,8 @@ def test_https(service, stop_flag):
     test_duration = service.probe_timeout
     response_statuss = None
     error_messages = None
+    previous_status = None  # Variable para almacenar el estado anterior del servicio
+    down_notified = False  # Indicador para controlar si se ha enviado la notificación de "down"
     http = httplib2.Http()
     try:
         service.in_process = True
@@ -527,6 +477,28 @@ def test_https(service, stop_flag):
                     cpu_processing_times = 0
                     result = "down"
                     test_results.append(result)
+                # Verificar si el estado ha cambiado a "down"
+                if result == "down":
+                    # Enviar correo electrónico solo si no se ha enviado una notificación anterior de "down"
+                    if service.down_notified == False:
+                    
+                        down_notified = True
+                        service.down_notified = down_notified
+                        subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
+                        previous_status = "down"
+                        send_test_completion_email_http(service, subject)
+                else:
+                    down_notified = False
+                    service.down_notified = down_notified
+                
+                # Verificar si el estado ha cambiado de "down" a "up"
+                if  previous_status == "down" and result == "up":
+                    subject = 'Cerbero. El servicio está activo nuevamente'
+                    send_test_completion_email_http(service, subject)
+
+                # Actualizar el estado anterior del servicio
+                previous_status = result
+
 
                 timestamp = timezone.now()
 
@@ -648,6 +620,32 @@ def test_tcp(service, stop_flag):
 
             service.status = result
             service.save()
+            
+            # Verificar si el estado ha cambiado a "down"
+            if result == "down":
+                # Enviar correo electrónico solo si no se ha enviado una notificación anterior de "down"
+                if service.down_notified == False:
+                    
+                    down_notified = True
+                    service.down_notified = down_notified
+                    service.save()
+                    subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
+                    previous_status = "down"
+                    send_test_completion_email_tcp(service, subject)
+            else:
+                down_notified = False
+                service.down_notified = down_notified
+                service.save()
+
+                
+            # Verificar si el estado ha cambiado de "down" a "up"
+            if  previous_status == "down" and result == "up":
+                subject = 'Cerbero. El servicio está activo nuevamente'
+                send_test_completion_email_tcp(service, subject)
+
+            # Actualizar el estado anterior del servicio
+            previous_status = result
+
 
             timestamp = timezone.now()
 
@@ -660,6 +658,8 @@ def test_tcp(service, stop_flag):
                 is_up=is_up,
                 cpu_processing_time=cpu_processing_times,
             )
+            
+            
 
             # Actualizar la iteración actual en la base de datos
             current_iteration = (current_iteration + 1) % num_of_tests
@@ -763,6 +763,31 @@ def test_dns(service, stop_flag):
 
             service.status = result
             service.save()
+            
+            # Verificar si el estado ha cambiado a "down"
+            if result == "down":
+                # Enviar correo electrónico solo si no se ha enviado una notificación anterior de "down"
+                if service.down_notified == False:
+                    
+                    down_notified = True
+                    service.down_notified = down_notified
+                    service.save()
+                    subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
+                    previous_status = "down"
+                    send_test_completion_email_dns(service, subject)
+            else:
+                down_notified = False
+                service.down_notified = down_notified
+                service.save()
+
+                
+            # Verificar si el estado ha cambiado de "down" a "up"
+            if  previous_status == "down" and result == "up":
+                subject = 'Cerbero. El servicio está activo nuevamente'
+                send_test_completion_email_dns(service, subject)
+
+            # Actualizar el estado anterior del servicio
+            previous_status = result
 
             timestamp = timezone.now()
 
@@ -838,7 +863,6 @@ def monitoreo_icmp_services(pk, resume=False):
         thread.start()
         current_threads_icmp[pk] = thread
 
-
 def test_icmp(service, stop_flag):
     test_results = []
     ip = service.dns_ip
@@ -879,9 +903,36 @@ def test_icmp(service, stop_flag):
                     result = "down"
                     end_time = time.time()
                     cpu_processing_times = end_time - start_time                
+            
             test_results.append(result)
             service.status = result
             service.save()
+            
+            
+            # Verificar si el estado ha cambiado a "down"
+            if result == "down":
+                # Enviar correo electrónico solo si no se ha enviado una notificación anterior de "down"
+                if service.down_notified == False:
+                    
+                    down_notified = True
+                    service.down_notified = down_notified
+                    service.save()
+                    subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
+                    previous_status = "down"
+                    send_test_completion_email_icmp(service, subject)
+            else:
+                down_notified = False
+                service.down_notified = down_notified
+                service.save()
+
+                
+            # Verificar si el estado ha cambiado de "down" a "up"
+            if  previous_status == "down" and result == "up":
+                subject = 'Cerbero. El servicio está activo nuevamente'
+                send_test_completion_email_icmp(service, subject)
+
+            # Actualizar el estado anterior del servicio
+            previous_status = result
             timestamp = timezone.now()
             is_up = result
             service.status = result
@@ -1005,16 +1056,41 @@ def test_tfp(service, stop_flag):
 
                 service.status = result
                 service.save()
-
-                timestamp = timezone.now()
-
-                is_up = result
-
-                service.status = result
+                
+                # Verificar si el estado ha cambiado a "down"
+            if result == "down":
+                # Enviar correo electrónico solo si no se ha enviado una notificación anterior de "down"
+                if service.down_notified == False:
+                    
+                    down_notified = True
+                    service.down_notified = down_notified
+                    service.save()
+                    subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
+                    previous_status = "down"
+                    send_test_completion_email_tcp(service, subject)
+            else:
+                down_notified = False
+                service.down_notified = down_notified
                 service.save()
 
-                is_up = result
-                ServiceStatusTFProtocol.objects.create(
+                
+            # Verificar si el estado ha cambiado de "down" a "up"
+            if  previous_status == "down" and result == "up":
+                subject = 'Cerbero. El servicio está activo nuevamente'
+                send_test_completion_email_tcp(service, subject)
+
+            # Actualizar el estado anterior del servicio
+            previous_status = result
+
+            timestamp = timezone.now()
+
+            is_up = result
+
+            service.status = result
+            service.save()
+
+            is_up = result
+            ServiceStatusTFProtocol.objects.create(
                     service=service,
                     timestamp=timestamp,
                     is_up=is_up,
