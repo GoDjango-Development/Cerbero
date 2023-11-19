@@ -38,15 +38,16 @@ stop_flags_update_lock = Lock()
 test_status = Lock()
 
 
-def send_test_completion_email_http(service, subject):
+def send_test_completion_email_http(service, subject, result):
     created_by_user = service.create_by
     service_name = service.name
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusHttp.objects.filter(service=service).order_by('-timestamp')
-    
-    
+    test_results = result
+    print(test_results)
+
+     
 
      
     # Obtener el grupo "staff"
@@ -67,6 +68,7 @@ def send_test_completion_email_http(service, subject):
             'service_name': service_name,
             'service_type' : service_type,
         })
+    
 
     # Obtener la ruta de la imagen
     image_path = os.path.join(settings.BASE_DIR, 'static/img/logo.png')
@@ -108,13 +110,13 @@ def send_test_completion_email_http(service, subject):
         msg.attach(image)
         msg.send()
 
-def send_test_completion_email_tcp(service, subject):
+def send_test_completion_email_tcp(service, subject, result):
     created_by_user = service.create_by
     service_name = service.name
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusTCP.objects.filter(service=service).order_by('-timestamp')
+    test_results = result
     
      
      # Obtener el grupo "staff"
@@ -176,14 +178,13 @@ def send_test_completion_email_tcp(service, subject):
         msg.attach(image)
         msg.send()
 
-def send_test_completion_email_dns(service, subject):
+def send_test_completion_email_dns(service, subject, result):
     created_by_user = service.create_by
     service_name = service.name
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusDNS.objects.filter(service=service).order_by('-timestamp')
-    
+    test_results = result
       # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
@@ -243,14 +244,13 @@ def send_test_completion_email_dns(service, subject):
         msg.attach(image)
         msg.send()
 
-def send_test_completion_email_icmp(service, subject):
+def send_test_completion_email_icmp(service, subject,result):
     created_by_user = service.create_by
     service_name = service.name
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusICMP.objects.filter(service=service).order_by('-timestamp')
-    
+    test_results = result
   # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
@@ -310,13 +310,13 @@ def send_test_completion_email_icmp(service, subject):
         msg.attach(image)
         msg.send()
    
-def send_test_completion_email_trf(service, subject):
+def send_test_completion_email_trf(service, subject, result):
     created_by_user = service.create_by
     service_name = service.name
     service_type = service.type_service
 
     # Obtener los resultados de las pruebas
-    test_results = ServiceStatusTFProtocol.objects.filter(service=service).order_by('-timestamp')
+    test_results = result
       # Obtener el grupo "staff"
     staff_group = Group.objects.get(name='staff')
 
@@ -486,7 +486,7 @@ def test_https(service, stop_flag):
                         service.down_notified = down_notified
                         subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
                         previous_status = "down"
-                        send_test_completion_email_http(service, subject)
+                        send_test_completion_email_http(service, subject,result)
                 else:
                     down_notified = False
                     service.down_notified = down_notified
@@ -494,7 +494,7 @@ def test_https(service, stop_flag):
                 # Verificar si el estado ha cambiado de "down" a "up"
                 if  previous_status == "down" and result == "up":
                     subject = 'Cerbero. El servicio está activo nuevamente'
-                    send_test_completion_email_http(service, subject)
+                    send_test_completion_email_http(service, subject, result)
 
                 # Actualizar el estado anterior del servicio
                 previous_status = result
@@ -539,9 +539,6 @@ def test_https(service, stop_flag):
             with stop_flags_lock:
                 # Eliminar la bandera de detención de prueba
                 stop_flags_http.pop(service.pk, None)
-
-
-
 
 
 @shared_task
@@ -631,7 +628,7 @@ def test_tcp(service, stop_flag):
                     service.save()
                     subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
                     previous_status = "down"
-                    send_test_completion_email_tcp(service, subject)
+                    send_test_completion_email_tcp(service, subject, result)
             else:
                 down_notified = False
                 service.down_notified = down_notified
@@ -641,7 +638,7 @@ def test_tcp(service, stop_flag):
             # Verificar si el estado ha cambiado de "down" a "up"
             if  previous_status == "down" and result == "up":
                 subject = 'Cerbero. El servicio está activo nuevamente'
-                send_test_completion_email_tcp(service, subject)
+                send_test_completion_email_tcp(service, subject, result)
 
             # Actualizar el estado anterior del servicio
             previous_status = result
@@ -774,7 +771,7 @@ def test_dns(service, stop_flag):
                     service.save()
                     subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
                     previous_status = "down"
-                    send_test_completion_email_dns(service, subject)
+                    send_test_completion_email_dns(service, subject,result)
             else:
                 down_notified = False
                 service.down_notified = down_notified
@@ -784,7 +781,7 @@ def test_dns(service, stop_flag):
             # Verificar si el estado ha cambiado de "down" a "up"
             if  previous_status == "down" and result == "up":
                 subject = 'Cerbero. El servicio está activo nuevamente'
-                send_test_completion_email_dns(service, subject)
+                send_test_completion_email_dns(service, subject,result)
 
             # Actualizar el estado anterior del servicio
             previous_status = result
@@ -919,7 +916,7 @@ def test_icmp(service, stop_flag):
                     service.save()
                     subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
                     previous_status = "down"
-                    send_test_completion_email_icmp(service, subject)
+                    send_test_completion_email_icmp(service, subject,result)
             else:
                 down_notified = False
                 service.down_notified = down_notified
@@ -929,7 +926,7 @@ def test_icmp(service, stop_flag):
             # Verificar si el estado ha cambiado de "down" a "up"
             if  previous_status == "down" and result == "up":
                 subject = 'Cerbero. El servicio está activo nuevamente'
-                send_test_completion_email_icmp(service, subject)
+                send_test_completion_email_icmp(service, subject, result)
 
             # Actualizar el estado anterior del servicio
             previous_status = result
@@ -1067,7 +1064,7 @@ def test_tfp(service, stop_flag):
                     service.save()
                     subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
                     previous_status = "down"
-                    send_test_completion_email_tcp(service, subject)
+                    send_test_completion_email_tcp(service, subject,result)
             else:
                 down_notified = False
                 service.down_notified = down_notified
@@ -1077,7 +1074,7 @@ def test_tfp(service, stop_flag):
             # Verificar si el estado ha cambiado de "down" a "up"
             if  previous_status == "down" and result == "up":
                 subject = 'Cerbero. El servicio está activo nuevamente'
-                send_test_completion_email_tcp(service, subject)
+                send_test_completion_email_tcp(service, subject, result)
 
             # Actualizar el estado anterior del servicio
             previous_status = result
