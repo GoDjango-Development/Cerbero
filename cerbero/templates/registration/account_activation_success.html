@@ -1,12 +1,32 @@
+{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Activación de cuenta exitosa</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <!-- Theme style -->
+     <link rel="stylesheet" href="{% static 'lib/bootstrap/css/bootstrap.min.css' %}" /> 
+     <title>Cuenta confirmada | Cerbero</title>
 </head>
+
 <body>
-    <h2>¡Activación de cuenta exitosa!</h2>
-    <p>Tu cuenta ha sido activada correctamente. Ahora puedes iniciar sesión en nuestro sitio web.</p>
-    <!-- Puedes agregar enlaces adicionales o cualquier otro contenido relevante -->
+    <header>
+
+        <div class="bg-light text-center pt-5" style="height: 100vh;">
+            <div class="container">
+                <div class="card">
+                    <img src="{% static 'img/logo.png' %}" class="card-img" alt="logo" style="width:320px; margin-left: 390px; margin-bottom: -45px;">
+                    <div class="card-body">
+                        <h5 class="card-title" style="font-size: 38px;"><strong>Activación de cuenta exitosa</strong></h5>
+                        <p class="card-text" style="font-size: 18px;">Tu cuenta ha sido activada correctamente. Ahora puedes iniciar sesión en nuestro sitio web.</p>
+                        <a href="{% url 'login' %}" class="btn btn-primary">ir a inicio de sesion</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
 </body>
+
 </html>
