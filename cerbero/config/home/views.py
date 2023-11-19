@@ -149,7 +149,7 @@ def register_user(request):
 
             # Crear una instancia de EmailMultiAlternatives
             msg = EmailMultiAlternatives(
-                subject='Confirmación de correo electrónico',
+                subject='Cerbero. Confirmación de correo electrónico',
                 body=strip_tags(html_content),  # Versión de texto plano del contenido HTML
                 from_email=settings.EMAIL_HOST_USER,
                 to=[email],
