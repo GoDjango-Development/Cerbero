@@ -589,7 +589,7 @@ def test_tcp(service, stop_flag):
     try:
         service.in_process = True
         service.save()
-
+        #estoy aca
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
         while True:
