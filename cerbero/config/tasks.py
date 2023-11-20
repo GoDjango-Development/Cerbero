@@ -589,6 +589,7 @@ def test_tcp(service, stop_flag):
     try:
         service.in_process = True
         service.save()
+
         # Obtener el estado actual de la prueba
         current_iteration = service.current_iteration or 0
         while True:
@@ -600,6 +601,7 @@ def test_tcp(service, stop_flag):
                     service.current_iteration = current_iteration
                     service.save()
                     break
+
             try:
                 start_time = time.time()
                 service.processed_by = 'Monitoreando'
@@ -631,7 +633,7 @@ def test_tcp(service, stop_flag):
                     service.save()
                     subject = 'Alerta Cerbero. El servicio se encuentra inactivo.'
                     previous_status = "down"
-                    send_test_completion_email_tcp(service, subject, result)
+                    send_test_completion_email_dns(service, subject,result)
             else:
                 down_notified = False
                 service.down_notified = down_notified
@@ -641,14 +643,16 @@ def test_tcp(service, stop_flag):
             # Verificar si el estado ha cambiado de "down" a "up"
             if  previous_status == "down" and result == "up":
                 subject = 'Cerbero. El servicio está activo nuevamente'
-                send_test_completion_email_tcp(service, subject, result)
+                send_test_completion_email_dns(service, subject,result)
 
             # Actualizar el estado anterior del servicio
             previous_status = result
 
-
             timestamp = timezone.now()
 
+
+            service.status = result
+            service.save()
 
 
             is_up = result
