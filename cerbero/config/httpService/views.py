@@ -29,15 +29,15 @@ def verify_edit_allowed(view_func):
         service = get_object_or_404(http_s, pk=pk)
 
         if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
-            messages.error(
-                request, "No se puede editar el elemento porque la prueba está en curso.")
-            return redirect('list_https')
+            message = "No se puede editar el elemento porque la prueba está en curso."
+            messages.warning( request, message , extra_tags='warning')
+            return redirect('list_http')
 
         # Verificar si el usuario actual es el creador del servicio o pertenece al grupo "admin"
         if not is_creator_admin(request.user, service):
             messages.error(
                 request, "No tienes permiso para editar este elemento.")
-            return redirect('list_https')
+            return redirect('list_http')
 
         return view_func(request, pk, *args, **kwargs)
 
@@ -215,14 +215,12 @@ def update_data_http(request):
             status_html = '<i class="fas fa-circle" style="color: grey;"></i>'
 
         # Crea el contenido HTML personalizado para la columna "Processed By" en función del valor
-        if processed_by == 'Terminado':
-            processed_by_html = '<h6><span class="badge badge-pill badge-success">Terminado</span></h6>'
-        elif processed_by == 'Detenido':
-            processed_by_html = '<h6><span class="badge badge-pill badge-warning">Detenido</span></h6>'
+        if processed_by == 'Detenido':
+            processed_by_html = '<h6 id="fila_{0}"><span class="badge badge-pill badge-warning">Detenido</span></h6>'.format(id)
         elif processed_by == 'Monitoreando':
-            processed_by_html = '<h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>'
+            processed_by_html = '<h6 id="fila_{0}"><span class="badge badge-pill badge-primary">Monitoreando</span></h6>'.format(id)
         else:
-            processed_by_html = '<h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>'
+            processed_by_html = '<h6 id="fila_{0}"><span class="badge badge-pill badge-secondary">Esperando</span></h6>'.format(id)
 
         date = {
             'status': status_html,

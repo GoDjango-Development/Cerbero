@@ -9,10 +9,13 @@
     $(document).ready(function() {
       {% for message in messages %}
         {% if message.tags %}
-          {% if 'create' or 'edit' in message.tags %}
-            toastr.success("{{ message }}");
-          {% else %}
+          {% if 'warning' in message.tags %}
             toastr.warning("{{ message }}");
+
+          {% else  %}
+            toastr.success("{{ message }}");
+
+          
           {% endif %}
         {% endif %}
       {% endfor %}
@@ -76,13 +79,10 @@ Listado de servicios ICMP
     </td>
     <td scope="col" style="width: 15%;" id="process_{{icmp.id }}">
     
-    {% if icmp.processed_by == 'Terminado' %}
-        <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif  icmp.processed_by == 'Detenido'%} 
-        <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
+    {% if  icmp.processed_by == 'Detenido'%} 
+        <h6 id="fila_{{icmp.id }}"><span class="badge badge-pill badge-warning">Detenido</span></h6>
     {% elif icmp.processed_by == 'Monitoreando' %}
-        <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
-    {% else %}
+        <h6 id="fila_{{icmp.id }}"><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
 
     {% endif %}
         
@@ -95,7 +95,7 @@ Listado de servicios ICMP
     <td scope="col" style="width: 10%;">
         <div class="row">
             <div class="col-12 col-sm-6 mb-1 ">
-                <a href="{% url 'edit_icmp' icmp.id %}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
+                <a href="{% url 'edit_icmp' icmp.id %}" id="edit_btn_{{ icmp.id }}" class=" edit-btn rounded btn btn-warning btn-sm btn-flat btn-block"
                     title="Editar Registro" data-in-processed ="{{ icmp.processed_by }}"><i class="fas fa-edit"></i></a>
             </div>
             <div class="col-12 col-sm-6">
@@ -104,8 +104,8 @@ Listado de servicios ICMP
                     data-in-processed-by="{{ icmp.processed_by }}"  name="service_id"><i class="fas fa-play"></i></button>
             </div>
             <div class="col-12 col-sm-6 mb-1 ">
-                <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-                    title="Eliminar Registro"  data-objeto-id="{{icmp.id }}" data-processed="{{ icmp.processed_by }}"><i class="fas fa-trash-alt"></i></button>
+                <button type="button" id="fila_{{icmp.id }}" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+                    title="Eliminar Registro"  data-objeto-id="{{icmp.id }}" data-processed=""><i class="fas fa-trash-alt"></i></button>
             </div>
             <div class="col-12 col-sm-6">
                 <a href="{% url 'service_detail_icmp' icmp.id %}" type="button"

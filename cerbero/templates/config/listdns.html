@@ -64,7 +64,7 @@ Listado de servicios DNS
 {% for dns in dns_s %}
 <tr>
   <td scope="col" style="width: 20%;">{{ dns.name}}</td>
-  <td scope="col" style="width: 15%;">{{ dns.ip_address}}</a></td>
+  <td scope="col" style="width: 15%;">{{ dns.ip_address}}</td>
   <td scope="col" style="width: 15%;">{{ dns.port}}</td>
   <td scope="col" style="width: 15%;">{{ dns.number_probe}}</td>
   <td scope="col" style="width: 15%;">{{ dns.probe_timeout}}</td>
@@ -80,13 +80,13 @@ Listado de servicios DNS
   </td>
   <td scope="col" style="width: 15%;" id="process_{{dns.id}}">
 
-    {% if dns.processed_by == 'Terminado' %}
-    <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif dns.processed_by == 'Detenido'%}
-    <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
+    {% if  dns.processed_by == 'Detenido'%} 
+      <h6 id="fila_{{dns.id }}"><span class="badge badge-pill badge-warning">Detenido</span></h6>
     {% elif dns.processed_by == 'Monitoreando' %}
-    <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
+      <h6 id="fila_{{dns.id }}"><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
+      <h6 id="fila_{{dns.id }}"><span class="badge badge-pill badge-primary">Esperando ...</span></h6>
+
     {% endif %}
   </td>
   <td scope="col" style="width: 15%;">{{ dns.create_by }}</td>
@@ -104,9 +104,8 @@ Listado de servicios DNS
           name="service_id"><i class="fas fa-play"></i></button>
       </div>
       <div class="col-12 col-sm-6 mb-1 ">
-        <button type="button" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
-          title="Eliminar Registro" data-objeto-id="{{dns.id }}" data-processed="{{ dns.processed_by }}"><i
-            class="fas fa-trash-alt"></i></button>
+        <button type="button" id="fila_{{dns.id }}" class="rounded btn btn-danger btn-sm btn-flat btn-block eliminar-btn"
+            title="Eliminar Registro"  data-objeto-id="{{dns.id }}" data-processed=""><i class="fas fa-trash-alt"></i></button>
       </div>
       <div class="col-12 col-sm-6">
         <a href="{% url 'service_detail_dns' dns.id %}" type="button"

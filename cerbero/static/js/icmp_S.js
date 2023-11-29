@@ -48,7 +48,7 @@ $(document).ready(function () {
                     $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
                 }
 
-               
+
             },
             error: function (xhr) {
                 console.error('Error al obtener el estado de Celery:', xhr);
@@ -78,12 +78,12 @@ $(document).ready(function () {
 
 
 
-    //Evento del boton eliminar .eliminar-btn
+    // Evento del botón eliminar .eliminar-btn
     $(document).on('click', '.eliminar-btn', function (event) {
         var objetoId = $(this).data('objeto-id');
-
+        var processedByValue = $(this).attr("data-processed");
         event.preventDefault();
-        var processedByValue = $(this).data("processed");
+
         if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
             toastr.warning("No se puede eliminar el elemento porque la prueba está en curso.");
         } else {
@@ -122,14 +122,10 @@ $(document).ready(function () {
     // Verificar si tengo permiso de edición .edit-btn
     $(".edit-btn").click(function (event) {
         event.preventDefault();
-        var processedByValue = $(this).data("in-processed");
-        if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
-            toastr.warning("No se puede editar el elemento porque la prueba está en curso.");
-        } else {
-            var href = $(this).attr("href");
-            if (href) {
-                window.location.href = href;
-            }
+        var href = $(this).attr("href");
+        if (href) {
+            window.location.href = href;
+
         }
     });
 
@@ -188,18 +184,21 @@ function actualizarColumnas() {
         type: "GET",
         dataType: "json",
         success: function (data) {
-            console.log("Datos recibidos:", data);
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
             $.each(data, function (index, elemento) {
                 var serviceId = elemento.id; // Obtén el ID del servicio
-                console.log("ID del servicio:", serviceId);
 
                 // Actualiza las columnas utilizando el ID del servicio
                 $("#status_" + serviceId).html(elemento.status);
                 $("#process_" + serviceId).html(elemento.processed_by);
-            });
 
-            console.log("Primer elemento de los datos:", data[0]);
+                // Capturar el valor del botón de eliminación correspondiente
+                var valor = $("#fila_" + serviceId + " span.badge").text();
+                
+                // Asigna el valor de processed_by al atributo data-processed del botón eliminar
+                $(".eliminar-btn[data-objeto-id='" + serviceId + "']").attr("data-processed", valor);
+
+            });
         },
         error: function (xhr, status, error) {
             console.error("Error al obtener los datos:", error);
@@ -207,9 +206,8 @@ function actualizarColumnas() {
     });
 }
 
-// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
+// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundo)
 setInterval(actualizarColumnas, 1000);
-
 
 
 function actualizarBoton(serviceId, iniciarMonitoreo) {
@@ -245,8 +243,8 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
-// actualizar estado en el servidor del incio o detencion del monitoreo
 
+// actualizar estado en el servidor del incio o detencion del monitoreo
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
     $.ajax({
