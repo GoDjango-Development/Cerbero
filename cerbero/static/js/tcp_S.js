@@ -3,15 +3,16 @@ let url = "ws://" + window.location.host + "/ws/buttons/";
 const socket = new WebSocket(url);
 
 
+
 $(document).ready(function () {
     // Crear la tabla con DataTables
-    $('#data').DataTable({
+    var table = $('#data').DataTable({
         drawCallback: function () {
             // Restaurar el estado de reproducción al cambiar de página
             restoreButtonStates();
         }
-    });
 
+    });
 
     var celeryActivo = false; // Variable para controlar el estado de Celery
 
@@ -47,7 +48,6 @@ $(document).ready(function () {
                     $('.monitoreo-btn').attr('title', 'Debe iniciar el servidor de Celery o Redis');
                 }
 
-                
 
             },
             error: function (xhr) {
@@ -78,12 +78,14 @@ $(document).ready(function () {
 
 
 
-    //Evento del boton eliminar .eliminar-btn
+    // Evento del botón eliminar .eliminar-btn
     $(document).on('click', '.eliminar-btn', function (event) {
         var objetoId = $(this).data('objeto-id');
+        var processedByValue = $(this).attr("data-processed");
+        console.log(
+            'valor de processedByValue', processedByValue
+        ); event.preventDefault();
 
-        event.preventDefault();
-        var processedByValue = $(this).data("processed");
         if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
             toastr.warning("No se puede eliminar el elemento porque la prueba está en curso.");
         } else {
@@ -122,14 +124,10 @@ $(document).ready(function () {
     // Verificar si tengo permiso de edición .edit-btn
     $(".edit-btn").click(function (event) {
         event.preventDefault();
-        var processedByValue = $(this).data("in-processed");
-        if (processedByValue !== "Esperando" && processedByValue !== "Detenido") {
-            toastr.warning("No se puede editar el elemento porque la prueba está en curso.");
-        } else {
-            var href = $(this).attr("href");
-            if (href) {
-                window.location.href = href;
-            }
+        var href = $(this).attr("href");
+        if (href) {
+            window.location.href = href;
+
         }
     });
 
@@ -150,10 +148,8 @@ $(document).ready(function () {
         actualizarEstadoEnServidor(serviceId, newState);
     });
 
-
-
+    // Obtener el estado almacenado en el atributo data y en el almacenamiento local
     function restoreButtonStates() {
-        // Obtener el estado almacenado en el atributo data y en el almacenamiento local
         $('.iniciar-monitoreo-btn').each(function () {
             var btn = $(this);
             var serviceId = btn.data('service-id');
@@ -164,9 +160,7 @@ $(document).ready(function () {
             actualizarBoton(serviceId, buttonState);
 
         });
-
     }
-
 
     // Evento WebSocket: Cuando se recibe un mensaje del servidor
     socket.onmessage = function (event) {
@@ -175,13 +169,15 @@ $(document).ready(function () {
 
         var pk = text.pk
         var buttonState = text.buttonState
-
+        console.log('pk:', text.pk);
+        console.log('este es el pk' + pk);
+        console.log('buttonState:', text.buttonState);
 
         actualizarBoton(pk, buttonState);
 
     };
-
 });
+
 
 // Actualizar columnas de estados y procesos
 function actualizarColumnas() {
@@ -190,18 +186,23 @@ function actualizarColumnas() {
         type: "GET",
         dataType: "json",
         success: function (data) {
-            console.log("Datos recibidos:", data);
             // Recorre los datos y actualiza las tres últimas columnas en cada fila
             $.each(data, function (index, elemento) {
                 var serviceId = elemento.id; // Obtén el ID del servicio
-                console.log("ID del servicio:", serviceId);
 
                 // Actualiza las columnas utilizando el ID del servicio
                 $("#status_" + serviceId).html(elemento.status);
                 $("#process_" + serviceId).html(elemento.processed_by);
-            });
 
-            console.log("Primer elemento de los datos:", data[0]);
+                // Capturar el valor del botón de eliminación correspondiente
+                var valor = $("#fila_" + serviceId + " span.badge").text();
+
+                console.log('valor de valor', valor)
+
+                // Asigna el valor de processed_by al atributo data-processed del botón eliminar
+                $(".eliminar-btn[data-objeto-id='" + serviceId + "']").attr("data-processed", valor);
+console.log($(".eliminar-btn[data-objeto-id='" + serviceId + "']").attr("data-processed", valor));
+            });
         },
         error: function (xhr, status, error) {
             console.error("Error al obtener los datos:", error);
@@ -209,24 +210,19 @@ function actualizarColumnas() {
     });
 }
 
-// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundos)
+// Llama a la función de actualización cada cierto intervalo de tiempo (por ejemplo, cada 1 segundo)
 setInterval(actualizarColumnas, 1000);
-
 
 
 function actualizarBoton(serviceId, iniciarMonitoreo) {
     var btn = $('[data-service-id="' + serviceId + '"]');
     if (iniciarMonitoreo) {
-        btn.find('i').removeClass('fa-play').addClass('fa-pause');
+        btn.html('<i class="fas fa-pause"></i>');
     } else {
-        btn.find('i').removeClass('fa-pause').addClass('fa-play');
+        btn.html('<i class="fas fa-play"></i>');
     }
     // Actualizar el atributo data-button-state
     btn.data('button-state', iniciarMonitoreo.toString());
-    
-    
-
-
     if (socket.readyState === WebSocket.OPEN) {
         var message = {
             serviceId: serviceId,
@@ -244,9 +240,14 @@ function actualizarBoton(serviceId, iniciarMonitoreo) {
         console.log('Conexión WebSocket abierta');
     };
 
+
+
+
+
     // Guardar el estado actual en el almacenamiento local
     guardarEstadoEnLocalStorage(serviceId, iniciarMonitoreo);
 }
+
 // actualizar estado en el servidor del incio o detencion del monitoreo
 function actualizarEstadoEnServidor(serviceId, newState) {
     var csrfToken = getCookie('csrftoken');
@@ -272,6 +273,7 @@ function actualizarEstadoEnServidor(serviceId, newState) {
         }
     });
 }
+
 // Guardar estados locales en la pc de como esta los botones
 function guardarEstadoEnLocalStorage(serviceId, state) {
     localStorage.setItem('buttonState_' + serviceId, state.toString());
@@ -292,8 +294,4 @@ function getCookie(name) {
     return cookieValue;
 
 }
-
-
-
-
 

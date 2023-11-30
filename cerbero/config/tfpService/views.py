@@ -27,15 +27,15 @@ def verify_edit_allowed(view_func):
         service = get_object_or_404(tfp_s, pk=pk)
 
         if service.processed_by != 'Esperando' and service.processed_by != 'Detenido':
-            messages.error(
-                request, "No se puede editar el elemento porque la prueba está en curso.")
+            message = "No se puede editar el elemento porque la prueba está en curso."
+            messages.warning( request, message , extra_tags='warning')
             return redirect('list_tfp')
 
         # Verificar si el usuario actual es el creador del servicio o pertenece al grupo "admin"
         if not is_creator_admin(request.user, service):
             messages.error(
                 request, "No tienes permiso para editar este elemento.")
-            return redirect('list_icmp')
+            return redirect('list_tfp')
 
         return view_func(request, pk, *args, **kwargs)
 
@@ -111,14 +111,14 @@ def update_data_tfp(request):
             status_html = '<i class="fas fa-circle" style="color: grey;"></i>'
 
         # Crea el contenido HTML personalizado para la columna "Processed By" en función del valor
-        
         if processed_by == 'Detenido':
-            processed_by_html = '<h6><span class="badge badge-pill badge-warning">Detenido</span></h6>'
+            processed_by_html = '<h6 id="fila_{0}"><span class="badge badge-pill badge-warning">Detenido</span></h6>'.format(id)
         elif processed_by == 'Monitoreando':
-            processed_by_html = '<h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>'
+            processed_by_html = '<h6 id="fila_{0}"><span class="badge badge-pill badge-primary">Monitoreando</span></h6>'.format(id)
         else:
-            processed_by_html = '<h6><span class="badge badge-pill badge-secondary">Esperando</span></h6>'
+            processed_by_html = '<h6 id="fila_{0}"><span class="badge badge-pill badge-secondary">Esperando ...</span></h6>'.format(id)
 
+        
         date = {
             'status': status_html,
             'processed_by': processed_by_html,

@@ -9,10 +9,13 @@
     $(document).ready(function() {
       {% for message in messages %}
         {% if message.tags %}
-          {% if 'create' or 'edit' in message.tags %}
-            toastr.success("{{ message }}");
-          {% else %}
+          {% if 'warning' in message.tags %}
             toastr.warning("{{ message }}");
+
+          {% else  %}
+            toastr.success("{{ message }}");
+
+          
           {% endif %}
         {% endif %}
       {% endfor %}
@@ -62,7 +65,7 @@ Listado de servicios TCP
 {% for tcp in tcp_s %}
 <tr>
     <td scope="col" style="width: 20%;">{{ tcp.name }}</td>
-    <td scope="col" style="width: 15%;">{{ tcp.ip_address}}</a></td>
+    <td scope="col" style="width: 15%;">{{ tcp.ip_address}}</td>
     <td scope="col" style="width: 15%;">{{ tcp.number_probe }}</td>
     <td scope="col" style="width: 15%;">{{ tcp.probe_timeout }}</td>
     <td scope="col" style="width: 3%;" id="status_{{tcp.id}}" class="">
@@ -78,13 +81,14 @@ Listado de servicios TCP
     </td>
     <td scope="col" style="width: 15%;" id="process_{{tcp.id}}">
     
-    {% if tcp.processed_by == 'Terminado' %}
-        <h6><span class="badge badge-pill badge-success">Terminado</span></h6>
-    {% elif  tcp.processed_by == 'Detenido'%} 
-        <h6><span class="badge badge-pill badge-warning">Detenido</span></h6>
+    {% if  tcp.processed_by == 'Detenido'%} 
+      <h6 id="fila_{{tcp.id }}"><span class="badge badge-pill badge-warning">Detenido</span></h6>
     {% elif tcp.processed_by == 'Monitoreando' %}
-        <h6><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
+      <h6 id="fila_{{tcp.id }}"><span class="badge badge-pill badge-primary">Monitoreando</span></h6>
     {% else %}
+      <h6 id="fila_{{tcp.id }}"><span class="badge badge-pill badge-primary">Esperando ...</span></h6>
+
+
     {% endif %}
     </td>
     <td scope="col" style="width: 15%;">{{ tcp.create_by }}</td>
