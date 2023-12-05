@@ -180,7 +180,7 @@ def statushttprecord(request, pk):
             status_html = '<i class="fas fa-circle" style="color: yellow;"></i>'
         else:
             status_html = ''
-        timestamp = status.timestamp.strftime('%d-%m-%y')
+        timestamp = status.timestamp.strftime("%Y-%m-%d %H:%M:%S")
         cpu_processing_time = round(status.cpu_processing_time, 4)
         response_status = status.response_status
         error_message = status.error_message
